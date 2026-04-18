@@ -13,12 +13,14 @@ REST en Ether y un frontend ligero renderizado con `jte`.
 
 ## Estado actual
 
-La primera iteracion expone:
+La API actual expone:
 
 - una pagina principal con controles de generacion y reproduccion
-- una API `GET /api/melodies/generate`
-- un motor inicial de melodias basado en escalas y movimiento
-  probabilistico
+- generacion clasica con `GET /api/melodies/generate`
+- composicion desde intencion con `POST /api/express/create`
+- composicion desde palabras con `POST /api/data/words`
+- composicion desde senales de sesion de codigo con `POST /api/data/code`
+- historial persistido con `GET /api/songs` y `GET /api/songs/{id}`
 
 ## Operacion local
 
@@ -38,3 +40,5 @@ Si vas a trabajar en el repo:
 4. Si vas a tocar codigo Java, lee `backend/README.md` y luego
    `backend/java/README.md`.
 5. Si buscas una guia humana de operacion, entra a `docs/README.md`.
+6. Si quieres integrar la API desde clientes HTTP, revisa
+   `openapi/ether-music.yaml`.

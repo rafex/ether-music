@@ -22,6 +22,7 @@
 - Build: Maven 3.9+
 - Servidor HTTP embebido: Jetty 12 via Ether
 - Reproduccion de audio: Web Audio API en navegador
+- Persistencia local: SQLite via `sqlite-jdbc`
 - CI/CD: aun no definido
 
 ### Integraciones

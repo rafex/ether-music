@@ -1,0 +1,391 @@
+openapi: 3.1.0
+info:
+  title: ether-music API
+  version: 0.1.0
+  summary: API para generar musica algoritmica y consultar canciones guardadas
+  description: |
+    API HTTP de ether-music. Permite generar composiciones de varias formas
+    y consultar el historial persistido localmente.
+servers:
+  - url: http://127.0.0.1:8080
+    description: Desarrollo local
+tags:
+  - name: composition
+    description: Endpoints que generan musica
+  - name: songs
+    description: Consulta de canciones guardadas
+paths:
+  /api/melodies/generate:
+    get:
+      tags: [composition]
+      summary: Genera una melodia clasica
+      parameters:
+        - in: query
+          name: root
+          schema:
+            type: string
+            example: F#
+          description: Nota raiz
+        - in: query
+          name: scale
+          schema:
+            type: string
+            enum: [major, minor, dorian, pentatonic-major, pentatonic-minor]
+            example: dorian
+        - in: query
+          name: octave
+          schema:
+            type: integer
+            minimum: 2
+            maximum: 6
+            example: 4
+        - in: query
+          name: steps
+          schema:
+            type: integer
+            minimum: 8
+            maximum: 32
+            example: 16
+        - in: query
+          name: bpm
+          schema:
+            type: integer
+            example: 120
+      responses:
+        '200':
+          description: Composicion generada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComposedResponse'
+              examples:
+                classic:
+                  value:
+                    source: classic
+                    interpretation: null
+                    bpm: 120
+                    request:
+                      root: F#
+                      scale: dorian
+                      octave: 4
+                      steps: 16
+                    scaleLabel: Dorian
+                    algorithm: weighted-random-step-motion
+                    palette:
+                      - index: 0
+                        name: F#4
+                        midiNumber: 66
+                        frequencyHz: 369.99442271163446
+                    melody:
+                      - step: 0
+                        rest: false
+                        noteIndex: 3
+                        noteName: B4
+                        frequencyHz: 493.8833012561241
+  /api/express/create:
+    post:
+      tags: [composition]
+      summary: Genera una composicion desde una intencion simple
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExpressRequest'
+            examples:
+              epic:
+                value:
+                  mood: epic
+                  energy: high
+                  tempo: fast
+                  length: long
+      responses:
+        '200':
+          description: Composicion generada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComposedResponse'
+        '400':
+          description: JSON invalido
+          content:
+            text/plain:
+              schema:
+                type: string
+  /api/data/words:
+    post:
+      tags: [composition]
+      summary: Genera una composicion desde palabras ponderadas
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WordsRequest'
+            examples:
+              words:
+                value:
+                  words:
+                    - word: feliz
+                      weight: 0.9
+                    - word: amor
+                      weight: 0.8
+                    - word: paz
+                      weight: 0.7
+      responses:
+        '200':
+          description: Composicion generada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComposedResponse'
+        '400':
+          description: JSON invalido
+          content:
+            text/plain:
+              schema:
+                type: string
+  /api/data/code:
+    post:
+      tags: [composition]
+      summary: Genera una composicion desde senales de una sesion de codigo
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CodeSessionRequest'
+            examples:
+              coding:
+                value:
+                  keystrokesPerMinute: 95
+                  errorsLastMinute: 2
+                  linesWritten: 18
+                  deletions: 6
+      responses:
+        '200':
+          description: Composicion generada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComposedResponse'
+        '400':
+          description: JSON invalido
+          content:
+            text/plain:
+              schema:
+                type: string
+  /api/songs:
+    get:
+      tags: [songs]
+      summary: Lista canciones guardadas
+      responses:
+        '200':
+          description: Ultimas canciones registradas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SongRecord'
+  /api/songs/{id}:
+    get:
+      tags: [songs]
+      summary: Devuelve una cancion guardada por id
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Cancion encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComposedResponse'
+        '400':
+          description: id requerido o invalido
+          content:
+            text/plain:
+              schema:
+                type: string
+        '404':
+          description: Cancion no encontrada
+          content:
+            text/plain:
+              schema:
+                type: string
+components:
+  schemas:
+    ExpressRequest:
+      type: object
+      properties:
+        mood:
+          type: string
+          example: happy
+        energy:
+          type: string
+          example: high
+        tempo:
+          type: string
+          example: fast
+        length:
+          type: string
+          example: short
+    WordEntry:
+      type: object
+      required: [word, weight]
+      properties:
+        word:
+          type: string
+          example: feliz
+        weight:
+          type: number
+          format: double
+          example: 0.9
+    WordsRequest:
+      type: object
+      properties:
+        words:
+          type: array
+          items:
+            $ref: '#/components/schemas/WordEntry'
+    CodeSessionRequest:
+      type: object
+      properties:
+        keystrokesPerMinute:
+          type: integer
+          example: 95
+        errorsLastMinute:
+          type: integer
+          example: 2
+        linesWritten:
+          type: integer
+          example: 18
+        deletions:
+          type: integer
+          example: 6
+    MelodyRequest:
+      type: object
+      required: [root, scale, octave, steps]
+      properties:
+        root:
+          type: string
+          example: C
+        scale:
+          type: string
+          example: major
+        octave:
+          type: integer
+          example: 4
+        steps:
+          type: integer
+          example: 16
+    ScaleNote:
+      type: object
+      required: [index, name, midiNumber, frequencyHz]
+      properties:
+        index:
+          type: integer
+          example: 0
+        name:
+          type: string
+          example: C4
+        midiNumber:
+          type: integer
+          example: 60
+        frequencyHz:
+          type: number
+          format: double
+          example: 261.6255653005986
+    MelodyStep:
+      type: object
+      required: [step, rest]
+      properties:
+        step:
+          type: integer
+          example: 0
+        rest:
+          type: boolean
+          example: false
+        noteIndex:
+          type:
+            - integer
+            - 'null'
+          example: 3
+        noteName:
+          type:
+            - string
+            - 'null'
+          example: F4
+        frequencyHz:
+          type:
+            - number
+            - 'null'
+          format: double
+          example: 349.2282314330039
+    ComposedResponse:
+      type: object
+      required: [source, bpm, request, scaleLabel, algorithm, palette, melody]
+      properties:
+        source:
+          type: string
+          example: classic
+        interpretation:
+          type:
+            - string
+            - 'null'
+          example: mood=happy → C major, energía=high → octava 5, tempo=fast → 160 BPM, longitud=short → 8 pasos
+        bpm:
+          type: integer
+          example: 120
+        request:
+          $ref: '#/components/schemas/MelodyRequest'
+        scaleLabel:
+          type: string
+          example: Mayor
+        algorithm:
+          type: string
+          example: weighted-random-step-motion
+        palette:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScaleNote'
+        melody:
+          type: array
+          items:
+            $ref: '#/components/schemas/MelodyStep'
+    SongRecord:
+      type: object
+      required: [id, createdAt, source, bpm, scaleLabel, root, steps]
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        createdAt:
+          type: string
+          example: '2026-04-18T04:10:00Z'
+        source:
+          type: string
+          example: express
+        bpm:
+          type: integer
+          example: 110
+        scaleLabel:
+          type: string
+          example: C Mayor
+        root:
+          type: string
+          example: C
+        steps:
+          type: integer
+          example: 16
+        interpretation:
+          type:
+            - string
+            - 'null'
+          example: mood=happy → C major, energía=medium → octava 4, tempo=medium → 100 BPM, longitud=medium → 16 pasos

@@ -9,6 +9,8 @@ principal se renderiza con `jte` y delega en JavaScript la visualizacion
 y reproduccion del audio con Web Audio API.
 El codigo del modulo vive en `backend/java/ether-music/` para no mezclar
 la raiz del repositorio con archivos del runtime.
+La aplicacion persiste las composiciones generadas en SQLite local para
+exponer un historial simple via API.
 
 ## Modulos principales
 
@@ -20,16 +22,19 @@ la raiz del repositorio con archivos del runtime.
   render del HTML inicial con `jte`.
 - `json`:
   adaptador local de Jackson al `JsonCodec` que Ether publica hoy.
+- `db`:
+  persistencia SQLite de composiciones y consulta del historial.
 
 ## Flujo principal
 
-1. El navegador pide `GET /`.
-2. Ether entrega una pagina HTML renderizada con `jte`.
-3. El usuario ajusta controles y pide una nueva melodía.
-4. El frontend llama `GET /api/melodies/generate`.
-5. El backend calcula la secuencia y responde JSON.
-6. El frontend pinta la cuadrícula y reproduce la secuencia con
-   osciladores del navegador.
+1. El navegador o cliente HTTP invoca uno de los endpoints de
+   composicion.
+2. Ether enruta la request al handler correspondiente.
+3. El mapper opcional traduce intencion, palabras o datos de codigo a un
+   `MelodyRequest`.
+4. El generador produce la secuencia, paleta y metadatos musicales.
+5. La composicion se guarda en SQLite.
+6. El cliente recibe JSON y puede reproducir o listar canciones.
 
 ## Restricciones
 
