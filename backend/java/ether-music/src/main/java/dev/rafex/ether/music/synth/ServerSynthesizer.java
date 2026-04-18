@@ -20,22 +20,25 @@ public final class ServerSynthesizer {
         final double secondsPerBeat = 60.0 / Math.max(1, request.bpm());
         final double noteDuration = secondsPerBeat * 0.5;
         final int samplesPerNote = (int) (noteDuration * SAMPLE_RATE);
-        final int totalSamples = samplesPerNote * melody.size();
+        final int loopCount = Math.max(1, Math.min(10, request.loops()));
+        final int totalSamples = samplesPerNote * melody.size() * loopCount;
 
         final float[] buffer = new float[totalSamples];
         final float amplitude = (float) Math.clamp(request.intensity(), 0.1, 1.0) * 0.7f;
 
-        for (int i = 0; i < melody.size(); i++) {
-            final MelodyStep step = melody.get(i);
-            if (step.rest() || step.frequencyHz() == null || step.frequencyHz() <= 0) continue;
+        for (int loopNum = 0; loopNum < loopCount; loopNum++) {
+            for (int i = 0; i < melody.size(); i++) {
+                final MelodyStep step = melody.get(i);
+                if (step.rest() || step.frequencyHz() == null || step.frequencyHz() <= 0) continue;
 
-            final int offset = i * samplesPerNote;
-            final String synth = request.synthesizer() == null ? "fm" : request.synthesizer().toLowerCase();
+                final int offset = (loopNum * melody.size() + i) * samplesPerNote;
+                final String synth = request.synthesizer() == null ? "fm" : request.synthesizer().toLowerCase();
 
-            switch (synth) {
-                case "additive" -> renderAdditive(buffer, offset, samplesPerNote, step.frequencyHz(), amplitude);
-                case "wavetable" -> renderWavetable(buffer, offset, samplesPerNote, step.frequencyHz(), amplitude);
-                default -> renderFm(buffer, offset, samplesPerNote, step.frequencyHz(), amplitude);
+                switch (synth) {
+                    case "additive" -> renderAdditive(buffer, offset, samplesPerNote, step.frequencyHz(), amplitude);
+                    case "wavetable" -> renderWavetable(buffer, offset, samplesPerNote, step.frequencyHz(), amplitude);
+                    default -> renderFm(buffer, offset, samplesPerNote, step.frequencyHz(), amplitude);
+                }
             }
         }
 

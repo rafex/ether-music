@@ -69,4 +69,32 @@ class ServerSynthesizerTest {
         assertEquals('R', wav[0]);
         assertEquals('I', wav[1]);
     }
+
+    @Test
+    void wavConMultiplesLoopsEsMasLargo() {
+        final var req1 = new SynthRequest(MELODY, 120, "fm", 0.0, 0.0, 0.8, 1);
+        final var req2 = new SynthRequest(MELODY, 120, "fm", 0.0, 0.0, 0.8, 2);
+        final var req3 = new SynthRequest(MELODY, 120, "fm", 0.0, 0.0, 0.8, 3);
+
+        final byte[] wav1 = ServerSynthesizer.synthesize(req1);
+        final byte[] wav2 = ServerSynthesizer.synthesize(req2);
+        final byte[] wav3 = ServerSynthesizer.synthesize(req3);
+
+        assertNotNull(wav1);
+        assertNotNull(wav2);
+        assertNotNull(wav3);
+        assertTrue(wav2.length > wav1.length, "2 loops debe ser más largo que 1 loop");
+        assertTrue(wav3.length > wav2.length, "3 loops debe ser más largo que 2 loops");
+        assertTrue(wav2.length >= wav1.length * 1.8, "2 loops debe ser ~2× más largo");
+        assertTrue(wav3.length >= wav1.length * 2.8, "3 loops debe ser ~3× más largo");
+    }
+
+    @Test
+    void loopsSeValidaAMaximo10() {
+        final var reqTooMany = new SynthRequest(MELODY, 120, "fm", 0.0, 0.0, 0.8, 100);
+        final byte[] wav = ServerSynthesizer.synthesize(reqTooMany);
+
+        assertNotNull(wav);
+        assertTrue(wav.length > 44);
+    }
 }

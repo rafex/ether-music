@@ -457,6 +457,13 @@
                         <option value="additive">Aditivo</option>
                         <option value="wavetable">Wavetable</option>
                     </select>
+                    <label style="margin-top:12px;">
+                        Loops (repeticiones)
+                        <div class="bpm-row">
+                            <input type="range" id="loops" min="1" max="10" value="1">
+                            <span class="bpm-value" id="loops-display">1</span>
+                        </div>
+                    </label>
                     <button class="wav-btn" id="download-wav-btn" disabled>Descargar WAV</button>
                     <audio id="wav-player" controls></audio>
                 </div>
@@ -494,6 +501,8 @@
 
     const bpmInput = document.getElementById("bpm");
     const bpmDisplay = document.getElementById("bpm-display");
+    const loopsInput = document.getElementById("loops");
+    const loopsDisplay = document.getElementById("loops-display");
     const waveSelect = document.getElementById("wave");
     const playBtn = document.getElementById("play");
     const stopBtn = document.getElementById("stop");
@@ -509,6 +518,10 @@
     bpmInput.addEventListener("input", function() {
         activeBpm = Number(bpmInput.value);
         bpmDisplay.textContent = String(activeBpm);
+    });
+
+    loopsInput.addEventListener("input", function() {
+        loopsDisplay.textContent = String(loopsInput.value);
     });
 
     document.querySelectorAll(".suggestion-chip").forEach(function(chip) {
@@ -707,7 +720,8 @@
             synthesizer: document.getElementById("server-synth").value,
             effectReverb: 0.4,
             effectDelay: 0.3,
-            intensity: 0.8
+            intensity: 0.8,
+            loops: Number(loopsInput.value)
         };
 
         fetch("/api/synthesize", {

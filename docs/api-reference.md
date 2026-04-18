@@ -200,18 +200,24 @@ Body JSON:
   "synthesizer": "fm",
   "effectReverb": 0.4,
   "effectDelay": 0.3,
-  "intensity": 0.8
+  "intensity": 0.8,
+  "loops": 1
 }
 ```
 
-Valores validos para `synthesizer`: `fm`, `additive`, `wavetable`.
+Parámetros:
+- `synthesizer`: `fm`, `additive`, `wavetable`
+- `loops`: número de repeticiones de la melodía (1-10, default 1). Controla la duración total del audio:
+  - 1 loop = duración base
+  - 2 loops = 2× la duración
+  - etc.
 
-Ejemplo:
+Ejemplo (con 3 loops para triplicar duración):
 
 ```bash
 curl -X POST "http://127.0.0.1:8080/api/synthesize" \
   -H "Content-Type: application/json" \
-  -d '{"melody":[{"step":0,"rest":false,"noteIndex":4,"noteName":"A4","frequencyHz":440.0}],"bpm":120,"synthesizer":"fm","effectReverb":0.4,"effectDelay":0.3,"intensity":0.8}' \
+  -d '{"melody":[{"step":0,"rest":false,"noteIndex":4,"noteName":"A4","frequencyHz":440.0}],"bpm":120,"synthesizer":"fm","effectReverb":0.4,"effectDelay":0.3,"intensity":0.8,"loops":3}' \
   -o salida.wav
 ```
 

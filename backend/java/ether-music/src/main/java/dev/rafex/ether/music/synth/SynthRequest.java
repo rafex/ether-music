@@ -10,5 +10,11 @@ public record SynthRequest(
         String synthesizer,
         double effectReverb,
         double effectDelay,
-        double intensity) {
+        double intensity,
+        int loops) {
+
+    public SynthRequest(List<MelodyStep> melody, int bpm, String synthesizer,
+            double effectReverb, double effectDelay, double intensity) {
+        this(melody, bpm, synthesizer, effectReverb, effectDelay, intensity, 1);
+    }
 }

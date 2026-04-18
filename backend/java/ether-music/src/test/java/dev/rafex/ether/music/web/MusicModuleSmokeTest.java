@@ -105,7 +105,7 @@ class MusicModuleSmokeTest {
     @Test
     void synthesizeApiDevuelveWav() throws Exception {
         final var body = "{\"melody\":[{\"step\":0,\"rest\":false,\"noteIndex\":0,\"noteName\":\"A4\",\"frequencyHz\":440.0}],"
-                + "\"bpm\":120,\"synthesizer\":\"fm\",\"effectReverb\":0.0,\"effectDelay\":0.0,\"intensity\":0.8}";
+                + "\"bpm\":120,\"synthesizer\":\"fm\",\"effectReverb\":0.0,\"effectDelay\":0.0,\"intensity\":0.8,\"loops\":1}";
         final var res = client.send(
                 HttpRequest.newBuilder(URI.create(baseUrl + "/api/synthesize"))
                         .POST(HttpRequest.BodyPublishers.ofString(body))
@@ -120,5 +120,33 @@ class MusicModuleSmokeTest {
         assertEquals('I', wav[1]);
         assertEquals('F', wav[2]);
         assertEquals('F', wav[3]);
+    }
+
+    @Test
+    void synthesizeApiConMultiplesLoopsDevuelveWavMasLargo() throws Exception {
+        final var body1 = "{\"melody\":[{\"step\":0,\"rest\":false,\"noteIndex\":0,\"noteName\":\"A4\",\"frequencyHz\":440.0}],"
+                + "\"bpm\":120,\"synthesizer\":\"fm\",\"effectReverb\":0.0,\"effectDelay\":0.0,\"intensity\":0.8,\"loops\":1}";
+        final var body2 = "{\"melody\":[{\"step\":0,\"rest\":false,\"noteIndex\":0,\"noteName\":\"A4\",\"frequencyHz\":440.0}],"
+                + "\"bpm\":120,\"synthesizer\":\"fm\",\"effectReverb\":0.0,\"effectDelay\":0.0,\"intensity\":0.8,\"loops\":2}";
+
+        final var res1 = client.send(
+                HttpRequest.newBuilder(URI.create(baseUrl + "/api/synthesize"))
+                        .POST(HttpRequest.BodyPublishers.ofString(body1))
+                        .header("content-type", "application/json")
+                        .build(),
+                HttpResponse.BodyHandlers.ofByteArray());
+
+        final var res2 = client.send(
+                HttpRequest.newBuilder(URI.create(baseUrl + "/api/synthesize"))
+                        .POST(HttpRequest.BodyPublishers.ofString(body2))
+                        .header("content-type", "application/json")
+                        .build(),
+                HttpResponse.BodyHandlers.ofByteArray());
+
+        assertEquals(200, res1.statusCode());
+        assertEquals(200, res2.statusCode());
+        final byte[] wav1 = res1.body();
+        final byte[] wav2 = res2.body();
+        assertTrue(wav2.length >= wav1.length * 1.8, "2 loops debe ser ~2× más largo que 1 loop");
     }
 }

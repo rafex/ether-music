@@ -490,6 +490,13 @@
                         <option value="additive">Aditivo</option>
                         <option value="wavetable">Wavetable</option>
                     </select>
+                    <label style="margin-top:12px;">
+                        Loops (repeticiones)
+                        <div class="bpm-row">
+                            <input type="range" id="loops" min="1" max="10" value="1">
+                            <span class="bpm-value" id="loops-display">1</span>
+                        </div>
+                    </label>
                     <button id="download-wav-btn" class="ai-btn" style="width:100%;background:rgba(168,255,62,0.1);border-color:var(--accent3);color:var(--accent3);" disabled>
                         Descargar WAV
                     </button>
@@ -543,6 +550,8 @@
 
     const bpmInput = document.getElementById("bpm");
     const bpmDisplay = document.getElementById("bpm-display");
+    const loopsInput = document.getElementById("loops");
+    const loopsDisplay = document.getElementById("loops-display");
     const waveSelect = document.getElementById("wave");
     const playBtn = document.getElementById("play");
     const stopBtn = document.getElementById("stop");
@@ -566,6 +575,10 @@
     bpmInput.addEventListener("input", function() {
         activeBpm = Number(bpmInput.value);
         bpmDisplay.textContent = String(activeBpm);
+    });
+
+    loopsInput.addEventListener("input", function() {
+        loopsDisplay.textContent = String(loopsInput.value);
     });
 
     document.querySelectorAll(".source-tab").forEach(function(btn) {
@@ -793,7 +806,8 @@
             synthesizer: serverSynth,
             effectReverb: 0.4,
             effectDelay: 0.3,
-            intensity: 0.8
+            intensity: 0.8,
+            loops: Number(loopsInput.value)
         };
 
         fetch("/api/synthesize", {
