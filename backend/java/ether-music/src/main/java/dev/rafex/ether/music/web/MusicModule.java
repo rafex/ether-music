@@ -52,7 +52,7 @@ public final class MusicModule implements JettyModule {
             final var songsHandler = new SongsApiHandler(context.jsonCodec(), repository);
             routes.add("/api/songs", songsHandler);
             routes.add("/api/songs/*", songsHandler);
-            routes.add("/api/songs/*/wav", new SongWavHandler(repository));
+            routes.add("/api/songs-wav/*", new SongWavHandler(repository));
         }
 
         if (electronicService != null) {

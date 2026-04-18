@@ -158,14 +158,14 @@ Ejemplo:
 curl -X DELETE "http://127.0.0.1:8080/api/songs/1"
 ```
 
-### `GET /api/songs/{id}/wav`
+### `GET /api/songs-wav/{id}`
 
 Sintetiza una composicion guardada y devuelve el archivo WAV (FM synthesis, reverb 0.35, delay 0.25).
 
 Ejemplo:
 
 ```bash
-curl "http://127.0.0.1:8080/api/songs/1/wav" -o cancion.wav
+curl "http://127.0.0.1:8080/api/songs-wav/1" -o cancion.wav
 ```
 
 ### `POST /api/electronic/{type}`

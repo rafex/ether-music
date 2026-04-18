@@ -25,7 +25,7 @@ public final class SongWavHandler extends Handler.Abstract {
         }
 
         final String path = request.getHttpURI().getPath();
-        // Extraer id de /api/songs/{id}/wav
+        // Extraer id de /api/songs-wav/{id}
         final String[] parts = path.split("/");
         if (parts.length < 4) {
             ResponseWriters.plainJson(response, callback, 400, "{\"error\":\"id requerido\"}");
