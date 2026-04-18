@@ -223,6 +223,13 @@
                 <span class="cta-arrow">→ Ir</span>
             </a>
 
+            <a href="/electronic" class="cta-card">
+                <div class="cta-icon">⚡</div>
+                <h2 class="cta-title">Electrónica</h2>
+                <p class="cta-description">Pega código o texto y la IA (DeepSeek) analiza el contexto para componer música electrónica</p>
+                <span class="cta-arrow">→ Ir</span>
+            </a>
+
             <a href="/play" class="cta-card">
                 <div class="cta-icon">🎶</div>
                 <h2 class="cta-title">Biblioteca</h2>

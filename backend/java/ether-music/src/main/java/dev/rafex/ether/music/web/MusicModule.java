@@ -3,6 +3,7 @@ package dev.rafex.ether.music.web;
 import dev.rafex.ether.http.jetty12.JettyModule;
 import dev.rafex.ether.http.jetty12.JettyModuleContext;
 import dev.rafex.ether.http.jetty12.JettyRouteRegistry;
+import dev.rafex.ether.music.ai.ElectronicCompositionService;
 import dev.rafex.ether.music.db.SongRepository;
 import dev.rafex.ether.music.frontend.FrontendRenderer;
 import dev.rafex.ether.music.melody.MelodyGenerator;
@@ -12,16 +13,23 @@ public final class MusicModule implements JettyModule {
     private final FrontendRenderer renderer;
     private final MelodyGenerator melodyGenerator;
     private final SongRepository repository;
+    private final ElectronicCompositionService electronicService;
 
     public MusicModule(final FrontendRenderer renderer, final MelodyGenerator melodyGenerator) {
-        this(renderer, melodyGenerator, null);
+        this(renderer, melodyGenerator, null, null);
     }
 
     public MusicModule(final FrontendRenderer renderer, final MelodyGenerator melodyGenerator,
             final SongRepository repository) {
+        this(renderer, melodyGenerator, repository, null);
+    }
+
+    public MusicModule(final FrontendRenderer renderer, final MelodyGenerator melodyGenerator,
+            final SongRepository repository, final ElectronicCompositionService electronicService) {
         this.renderer = renderer;
         this.melodyGenerator = melodyGenerator;
         this.repository = repository;
+        this.electronicService = electronicService;
     }
 
     @Override
@@ -33,6 +41,9 @@ public final class MusicModule implements JettyModule {
         routes.add("/", new IndexPageHandler(renderer));
         routes.add("/create", new CreatePageHandler(renderer));
         routes.add("/play", new PlayPageHandler(renderer));
+        routes.add("/electronic", new ElectronicPageHandler(renderer));
+        routes.add("/agent", new AgentPageHandler(renderer));
+        routes.add("/api/synthesize", new SynthesizeHandler());
         routes.add("/api/melodies/*", new MelodyApiHandler(context.jsonCodec(), melodyGenerator, repository));
         routes.add("/api/express/*", new ExpressApiHandler(context.jsonCodec(), melodyGenerator, repository));
         routes.add("/api/data/*", new DataApiHandler(context.jsonCodec(), melodyGenerator, repository));
@@ -41,6 +52,12 @@ public final class MusicModule implements JettyModule {
             final var songsHandler = new SongsApiHandler(context.jsonCodec(), repository);
             routes.add("/api/songs", songsHandler);
             routes.add("/api/songs/*", songsHandler);
+            routes.add("/api/songs/*/wav", new SongWavHandler(repository));
+        }
+
+        if (electronicService != null) {
+            final var electronicHandler = new ElectronicCompositionHandler(electronicService);
+            routes.add("/api/electronic/*", electronicHandler);
         }
     }
 }

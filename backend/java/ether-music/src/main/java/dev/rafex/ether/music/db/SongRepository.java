@@ -28,6 +28,8 @@ public final class SongRepository {
 
     private static final String SELECT_BY_ID = "SELECT data_json FROM songs WHERE id = ?";
 
+    private static final String DELETE_BY_ID = "DELETE FROM songs WHERE id = ?";
+
     private final DatabaseClient db;
     private final ObjectMapper objectMapper;
 
@@ -63,6 +65,16 @@ public final class SongRepository {
                 rs.getString("root"),
                 rs.getInt("steps"),
                 rs.getString("interpretation")));
+    }
+
+    public boolean delete(final long id) {
+        try {
+            db.execute(new SqlQuery(DELETE_BY_ID, List.of(SqlParameter.of(id))));
+            return true;
+        } catch (final Exception e) {
+            System.err.println("No se pudo eliminar la canción id=" + id + ": " + e.getMessage());
+            return false;
+        }
     }
 
     public Optional<ComposedResponse> findById(final long id) {

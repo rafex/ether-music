@@ -37,4 +37,16 @@ public final class FrontendRenderer {
         templateEngine.render("pages/play.jte", model, output);
         return output.toString();
     }
+
+    public String renderElectronic(final HomePageModel model) {
+        final var output = new StringOutput();
+        templateEngine.render("pages/electronic.jte", model, output);
+        return output.toString();
+    }
+
+    public String renderAgent(final HomePageModel model) {
+        final var output = new StringOutput();
+        templateEngine.render("pages/agent.jte", model, output);
+        return output.toString();
+    }
 }

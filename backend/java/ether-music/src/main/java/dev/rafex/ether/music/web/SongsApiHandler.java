@@ -59,7 +59,26 @@ public final class SongsApiHandler extends ResourceHandler {
     }
 
     @Override
+    public boolean delete(final HttpExchange x) {
+        final var idParam = x.pathParam("id");
+        if (idParam == null || idParam.isBlank()) {
+            x.text(400, "id requerido");
+            return true;
+        }
+        final long id;
+        try {
+            id = Long.parseLong(idParam);
+        } catch (final NumberFormatException e) {
+            x.text(400, "id inválido");
+            return true;
+        }
+        final boolean deleted = repository.delete(id);
+        x.text(deleted ? 204 : 404, deleted ? "" : "canción no encontrada");
+        return true;
+    }
+
+    @Override
     public Set<String> supportedMethods() {
-        return Set.of("GET");
+        return Set.of("GET", "DELETE");
     }
 }

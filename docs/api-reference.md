@@ -146,6 +146,75 @@ Ejemplo:
 curl "http://127.0.0.1:8080/api/songs/1"
 ```
 
+### `DELETE /api/songs/{id}`
+
+Elimina una composicion guardada.
+
+Devuelve `204` si fue eliminada, `404` si no existe.
+
+Ejemplo:
+
+```bash
+curl -X DELETE "http://127.0.0.1:8080/api/songs/1"
+```
+
+### `GET /api/songs/{id}/wav`
+
+Sintetiza una composicion guardada y devuelve el archivo WAV (FM synthesis, reverb 0.35, delay 0.25).
+
+Ejemplo:
+
+```bash
+curl "http://127.0.0.1:8080/api/songs/1/wav" -o cancion.wav
+```
+
+### `POST /api/electronic/{type}`
+
+Analiza contenido con DeepSeek y genera una composicion electronica.
+`{type}` puede ser `code`, `text` o `words`.
+
+Requiere la variable de entorno `DEEPSEEK_API_KEY`.
+
+Body: texto plano (codigo, texto libre, o JSON de nube de palabras segun el tipo).
+
+Ejemplo:
+
+```bash
+curl -X POST "http://127.0.0.1:8080/api/electronic/text" \
+  -H "Content-Type: text/plain" \
+  -d "Una noche de lluvia intensa en la ciudad"
+```
+
+### `POST /api/synthesize`
+
+Sintetiza una melodia en el servidor y devuelve un archivo WAV descargable.
+
+Body JSON:
+
+```json
+{
+  "melody": [
+    { "step": 0, "rest": false, "noteIndex": 4, "noteName": "A4", "frequencyHz": 440.0 }
+  ],
+  "bpm": 120,
+  "synthesizer": "fm",
+  "effectReverb": 0.4,
+  "effectDelay": 0.3,
+  "intensity": 0.8
+}
+```
+
+Valores validos para `synthesizer`: `fm`, `additive`, `wavetable`.
+
+Ejemplo:
+
+```bash
+curl -X POST "http://127.0.0.1:8080/api/synthesize" \
+  -H "Content-Type: application/json" \
+  -d '{"melody":[{"step":0,"rest":false,"noteIndex":4,"noteName":"A4","frequencyHz":440.0}],"bpm":120,"synthesizer":"fm","effectReverb":0.4,"effectDelay":0.3,"intensity":0.8}' \
+  -o salida.wav
+```
+
 ## Forma de la respuesta de composicion
 
 Todos los endpoints generativos devuelven un `ComposedResponse` con este

@@ -12,6 +12,8 @@ import dev.rafex.ether.http.jetty12.JettyServerConfig;
 import dev.rafex.ether.http.jetty12.JettyServerFactory;
 import dev.rafex.ether.jdbc.client.JdbcDatabaseClient;
 import dev.rafex.ether.jdbc.datasource.SimpleDataSource;
+import dev.rafex.ether.music.ai.DeepSeekMusicAnalyzer;
+import dev.rafex.ether.music.ai.ElectronicCompositionService;
 import dev.rafex.ether.music.db.SchemaInitializer;
 import dev.rafex.ether.music.db.SongRepository;
 import dev.rafex.ether.music.frontend.FrontendRenderer;
@@ -35,7 +37,19 @@ public final class EtherMusicApplication {
         final var config = JettyServerConfig.fromEnv();
         final var jsonCodec = new JacksonJsonCodec();
         final var renderer = new FrontendRenderer(Path.of("src/main/jte"));
-        final var module = new MusicModule(renderer, new MelodyGenerator(), repository);
+        final var melodyGenerator = new MelodyGenerator();
+
+        final var deepseekApiKey = System.getenv("DEEPSEEK_API_KEY");
+        ElectronicCompositionService electronicService = null;
+        if (deepseekApiKey != null && !deepseekApiKey.isBlank()) {
+            final var llm = new DeepSeekMusicAnalyzer(deepseekApiKey);
+            electronicService = new ElectronicCompositionService(llm, melodyGenerator, repository);
+            System.out.println("ether-music LLM electrónica activada (DeepSeek)");
+        } else {
+            System.out.println("ether-music DEEPSEEK_API_KEY no configurada — endpoints /api/electronic/* desactivados");
+        }
+
+        final var module = new MusicModule(renderer, melodyGenerator, repository, electronicService);
 
         final var runner = JettyServerFactory.create(config, jsonCodec, null, List.of(module));
         runner.start();
