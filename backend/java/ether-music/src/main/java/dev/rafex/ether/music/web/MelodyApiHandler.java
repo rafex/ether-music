@@ -7,16 +7,21 @@ import dev.rafex.ether.http.core.HttpExchange;
 import dev.rafex.ether.http.core.Route;
 import dev.rafex.ether.http.jetty12.JsonCodec;
 import dev.rafex.ether.http.jetty12.ResourceHandler;
+import dev.rafex.ether.music.db.SongRepository;
+import dev.rafex.ether.music.melody.ComposedResponse;
 import dev.rafex.ether.music.melody.MelodyGenerator;
 import dev.rafex.ether.music.melody.MelodyRequest;
 
 public final class MelodyApiHandler extends ResourceHandler {
 
     private final MelodyGenerator melodyGenerator;
+    private final SongRepository repository;
 
-    public MelodyApiHandler(final JsonCodec jsonCodec, final MelodyGenerator melodyGenerator) {
+    public MelodyApiHandler(final JsonCodec jsonCodec, final MelodyGenerator melodyGenerator,
+            final SongRepository repository) {
         super(jsonCodec);
         this.melodyGenerator = melodyGenerator;
+        this.repository = repository;
     }
 
     @Override
@@ -36,7 +41,13 @@ public final class MelodyApiHandler extends ResourceHandler {
                 valueOrDefault(x.queryFirst("scale"), "minor"),
                 parseInt(x.queryFirst("octave"), 4),
                 parseInt(x.queryFirst("steps"), 16));
-        x.json(200, melodyGenerator.generate(request));
+        final int bpm = parseInt(x.queryFirst("bpm"), 110);
+        final var melody = melodyGenerator.generate(request);
+        final var response = ComposedResponse.from("classic", null, bpm, melody);
+        if (repository != null) {
+            repository.save(response);
+        }
+        x.json(200, response);
         return true;
     }
 
