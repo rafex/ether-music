@@ -38,7 +38,7 @@ class MusicModuleSmokeTest {
                     HttpRequest.newBuilder(URI.create(baseUrl + "/")).GET().build(),
                     HttpResponse.BodyHandlers.ofString());
             assertEquals(200, pageResponse.statusCode());
-            assertTrue(pageResponse.body().contains("ETHER MUSIC"));
+            assertTrue(pageResponse.body().contains("ETHER"));
 
             final var apiResponse = client.send(
                     HttpRequest.newBuilder(URI.create(baseUrl + "/api/melodies/generate?root=D&scale=major&steps=8"))

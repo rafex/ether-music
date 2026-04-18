@@ -30,7 +30,9 @@ public final class MusicModule implements JettyModule {
         routes.add("/manifest.json", pwa);
         routes.add("/sw.js", pwa);
         routes.add("/icons/*", pwa);
-        routes.add("/", new HomePageHandler(renderer));
+        routes.add("/", new IndexPageHandler(renderer));
+        routes.add("/create", new CreatePageHandler(renderer));
+        routes.add("/play", new PlayPageHandler(renderer));
         routes.add("/api/melodies/*", new MelodyApiHandler(context.jsonCodec(), melodyGenerator, repository));
         routes.add("/api/express/*", new ExpressApiHandler(context.jsonCodec(), melodyGenerator, repository));
         routes.add("/api/data/*", new DataApiHandler(context.jsonCodec(), melodyGenerator, repository));

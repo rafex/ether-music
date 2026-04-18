@@ -19,4 +19,22 @@ public final class FrontendRenderer {
         templateEngine.render("pages/home.jte", model, output);
         return output.toString();
     }
+
+    public String renderIndex(final HomePageModel model) {
+        final var output = new StringOutput();
+        templateEngine.render("pages/index.jte", model, output);
+        return output.toString();
+    }
+
+    public String renderCreate(final HomePageModel model) {
+        final var output = new StringOutput();
+        templateEngine.render("pages/create.jte", model, output);
+        return output.toString();
+    }
+
+    public String renderPlay(final HomePageModel model) {
+        final var output = new StringOutput();
+        templateEngine.render("pages/play.jte", model, output);
+        return output.toString();
+    }
 }
