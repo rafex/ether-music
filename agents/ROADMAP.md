@@ -1,34 +1,25 @@
 # ROADMAP.md
 
-Direccion del proyecto en el tiempo.
-
-## Objetivo
-
-Dar contexto de prioridad sin convertir esto en una lista de tickets.
-
-## Cuando leer este archivo
-
-Leer antes de crear una nueva spec para confirmar que la iniciativa
-es coherente con la direccion actual del proyecto.
-
-Si ROADMAP.md menciona una iniciativa pero no existe spec para ella,
-el siguiente paso es crear esa spec antes de implementar.
-
-## Template
-
 ### Ahora
 
-- Iniciativas activas
-- Bloqueos actuales
+- Levantar el MVP de generacion melodica via REST con Ether.
+- Convertir el mock HTML en una interfaz funcional conectada al backend.
+- Establecer la documentacion base de producto, arquitectura y tareas.
 
 ### Despues
 
-- Siguientes prioridades
+- Permitir mas algoritmos de generacion y semillas reproducibles.
+- Agregar endpoints para catalogo de escalas, presets y configuracion.
+- Separar frontend y backend por modulos si el proyecto crece.
 
 ### Mas adelante
 
-- Apuestas futuras
+- Persistir melodias y sesiones.
+- Exportar MIDI o formatos intercambiables.
+- Incorporar ritmos, armonia y capas de instrumentos.
 
 ### No hacer por ahora
 
-- Ideas descartadas temporalmente
+- Autenticacion de usuarios.
+- Base de datos o despliegue complejo.
+- Streaming en tiempo real o colaboracion multiusuario.

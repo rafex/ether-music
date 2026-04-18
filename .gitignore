@@ -1,2 +1,23 @@
 # Ignorar archivos de sesión de opencode
 .opencode/sessions.db*
+target/
+jte-classes/
+
+# Basura global de editor y sistema
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Directorios basura creados accidentalmente por comandos mal parseados
+/&&/
+/-q/
+/cd/
+/dependency:get/
+/done/
+/mvn/
+/printf/
+/-Dartifact=*/

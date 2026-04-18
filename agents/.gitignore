@@ -1,0 +1,6 @@
+# Basura local dentro del contexto documental
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~

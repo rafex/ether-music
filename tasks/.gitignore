@@ -1,0 +1,6 @@
+# Basura local dentro del arbol de tareas
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~

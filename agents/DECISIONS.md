@@ -1,34 +1,62 @@
 # DECISIONS.md
 
-Registro de decisiones persistentes del proyecto.
+### DEC-0001 - Backend minimo sobre Ether con frontend servido en el mismo proceso
 
-## Cuando registrar aqui
+- Fecha: 2026-04-17
+- Estado: `accepted`
+- Relacionado con specs: `SPEC-0001`
+- Relacionado con tareas: `TASK-0001`, `TASK-0002`
+- Contexto: el repo empieza vacio y necesita una base pequena para
+  validar la idea antes de separar servicios o agregar infraestructura.
+- Decision: usar una sola aplicacion Java 21 con Ether para exponer la
+  API REST y servir la pagina inicial desde el mismo proceso.
+- Consecuencias: menos complejidad operativa y una integracion simple
+  entre API y UI; a cambio, el frontend queda acoplado temporalmente al
+  backend.
+- Reemplaza: `none`
 
-Registrar una decision cuando cambie algo que futuras iniciativas
-o agentes deban respetar:
+### DEC-0002 - `jte` se usa solo para render HTML; el audio vive en el navegador
 
-- la arquitectura del sistema
-- una convencion de codigo o de documentacion
-- una tecnologia o dependencia base
-- un tradeoff que condicione trabajo futuro
+- Fecha: 2026-04-17
+- Estado: `accepted`
+- Relacionado con specs: `SPEC-0001`
+- Relacionado con tareas: `TASK-0002`
+- Contexto: `jte.gg` es un motor de templates Java, no una libreria de
+  reproduccion musical.
+- Decision: usar `jte` para renderizar el HTML inicial y delegar la
+  reproduccion a JavaScript con Web Audio API.
+- Consecuencias: la interfaz inicial es facil de servir desde Java;
+  cualquier evolucion de audio avanzada debera ocurrir en el cliente o
+  mediante otra integracion dedicada.
+- Reemplaza: `none`
 
-Ver `AGENTS.md` para entender la separacion semantica entre este
-archivo y `SPEC.md`.
+### DEC-0003 - `Makefile` para build y `justfile` para operacion
 
-## Cuando leer este archivo
+- Fecha: 2026-04-17
+- Estado: `accepted`
+- Relacionado con specs: `SPEC-0001`
+- Relacionado con tareas: `TASK-0001`, `TASK-0002`, `TASK-0003`
+- Contexto: se necesita una interfaz operativa simple sin mezclar
+  responsabilidades ni duplicar comandos.
+- Decision: usar `Makefile` como unica fuente para build y validacion, y
+  `justfile` como task runner de entrada. `just` puede delegar en
+  `make`, pero `make` no debe depender de `just`.
+- Consecuencias: el workflow queda mas claro para humanos y agentes; si
+  aparece una nueva tarea de construccion, debe ir primero a `make` y
+  exponerse en `just` solo como wrapper cuando haga falta.
+- Reemplaza: `none`
 
-Antes de iniciar una nueva iniciativa, revisar si alguna decision
-registrada condiciona el diseno o la implementacion.
+### DEC-0004 - El modulo Java vive en `backend/java/`
 
-## Formato sugerido
-
-### DEC-0001 - Titulo de la decision
-
-- Fecha: YYYY-MM-DD
-- Estado: `proposed | accepted | deprecated | replaced`
-- Relacionado con specs:
-- Relacionado con tareas:
-- Contexto: que problema obligo la decision
-- Decision: que se decidio exactamente
-- Consecuencias: costos, beneficios y limites
-- Reemplaza: DEC-XXXX o `none`
+- Fecha: 2026-04-17
+- Estado: `accepted`
+- Relacionado con specs: `SPEC-0001`
+- Relacionado con tareas: `TASK-0001`, `TASK-0002`, `TASK-0003`
+- Contexto: la raiz del repo estaba acumulando archivos del modulo Java y
+  eso mezcla documentacion, orquestacion y codigo ejecutable.
+- Decision: mover `pom.xml` y `src/` a `backend/java/` y dejar en la raiz
+  solo documentacion y entrypoints operativos.
+- Consecuencias: la navegacion del repo queda mas clara; cualquier
+  comando o documento que apunte al modulo debe referenciar la nueva
+  ruta.
+- Reemplaza: `none`

@@ -17,6 +17,10 @@ Reglas operativas y de implementacion del proyecto.
 - Preferir cambios pequenos y locales.
 - Evitar duplicacion accidental.
 - Seguir la estructura definida en `ARCHITECTURE.md`.
+- `Makefile` concentra build y validacion; `justfile` orquesta tareas sin
+  duplicar la logica de `make`.
+- El codigo Java del producto vive en `backend/java/`; la raiz del repo
+  se reserva para orquestacion y documentacion.
 
 ### Tests
 

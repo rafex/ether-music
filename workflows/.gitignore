@@ -1,0 +1,6 @@
+# Basura local dentro del arbol de workflows
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~

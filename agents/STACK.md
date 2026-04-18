@@ -1,39 +1,35 @@
 # STACK.md
 
-Fuente de verdad de la base tecnologica del proyecto.
-
-## Debe responder
-
-- Que tecnologias usa el proyecto.
-- Que versiones o rangos son obligatorios.
-- Que servicios externos participan.
-- Que restricciones de plataforma existen.
-
-## Template
-
 ### Runtime
 
-- Lenguaje:
-- Version:
+- Lenguaje: Java
+- Version: 21 como baseline de compilacion
+- Ubicacion del modulo: `backend/java/`
 
 ### Frameworks
 
-- Framework:
-  version, uso y observaciones.
+- Ether `ether-http-jetty12` `3.0.8-v20260303`:
+  servidor HTTP y registro de rutas REST.
+- `jte` `3.2.3`:
+  render de templates HTML del frontend.
+- Jackson Databind `2.20.0`:
+  implementacion local del `JsonCodec` requerido por la version
+  publicada de Ether.
 
 ### Infraestructura
 
-- Base de datos
-- Hosting
-- CI/CD
-- Observabilidad
+- Build: Maven 3.9+
+- Servidor HTTP embebido: Jetty 12 via Ether
+- Reproduccion de audio: Web Audio API en navegador
+- CI/CD: aun no definido
 
 ### Integraciones
 
-- Servicio:
-  proposito, criticidad y consideraciones.
+- Navegador moderno con Web Audio API:
+  reproduccion local del audio generado.
 
 ### Restricciones
 
-- Restriccion de version
-- Restriccion de plataforma
+- Compilar con `--release 21`.
+- Mantener el frontend sin bundler en esta fase.
+- No depender de almacenamiento externo para el MVP inicial.

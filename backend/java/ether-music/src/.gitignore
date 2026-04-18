@@ -1,0 +1,6 @@
+# Basura local dentro del arbol de codigo
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~

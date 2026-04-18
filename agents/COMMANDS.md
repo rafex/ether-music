@@ -1,48 +1,37 @@
 # COMMANDS.md
 
-Lista de comandos operativos del proyecto.
-
-## Objetivo
-
-Reducir la ambiguedad de ejecucion para agentes y humanos.
-
-## Template
-
 ### Setup
 
 ```bash
-# instalar dependencias
+just test
 ```
 
 ### Desarrollo
 
 ```bash
-# iniciar app
+just run
 ```
 
 ### Tests
 
 ```bash
-# correr tests
+just test
 ```
 
 ### Lint y formato
 
 ```bash
-# lint
-# format
+# pendiente definir
 ```
 
 ### Build
 
 ```bash
-# build
+just build
 ```
 
 ### Utilidad
 
 ```bash
-# seed
-# migrate
-# generar tipos
+just run 9090
 ```
