@@ -7,8 +7,8 @@ Ether monta el servidor HTTP y registra rutas. El backend contiene la
 logica de generacion melodica y expone respuestas JSON. La pagina
 principal se renderiza con `jte` y delega en JavaScript la visualizacion
 y reproduccion del audio con Web Audio API.
-El codigo del modulo vive en `backend/java/` para no mezclar la raiz del
-repositorio con archivos del runtime.
+El codigo del modulo vive en `backend/java/ether-music/` para no mezclar
+la raiz del repositorio con archivos del runtime.
 
 ## Modulos principales
 
@@ -37,7 +37,7 @@ repositorio con archivos del runtime.
 - Evitar dependencias de frameworks pesados fuera de Ether y `jte`.
 - Mantener la generacion desacoplada de Jetty para poder extraerla
   luego a servicios o tests puros.
-- Mantener el codigo Java contenido en `backend/java/`.
+- Mantener el codigo Java contenido en `backend/java/ether-music/`.
 
 ## Riesgos
 

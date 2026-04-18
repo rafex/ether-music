@@ -6,4 +6,5 @@ Thumbs.db
 *.tmp
 *.class
 *.jar
+!.mvn/wrapper/maven-wrapper.jar
 bin/

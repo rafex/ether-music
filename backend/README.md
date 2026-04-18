@@ -4,7 +4,7 @@ Indice del codigo de backend del repositorio.
 
 ## Estructura
 
-- `java/`: modulo Java del proyecto `ether-music`.
+- `java/`: agrupador de runtimes Java del repositorio.
 
 ## Navegacion
 

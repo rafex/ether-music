@@ -16,4 +16,4 @@ clean:
   make clean
 
 run port="8080":
-  cd backend/java && PORT={{port}} mvn exec:java
+  cd backend/java/ether-music && PORT={{port}} ./mvnw exec:java

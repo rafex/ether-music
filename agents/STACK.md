@@ -4,7 +4,8 @@
 
 - Lenguaje: Java
 - Version: 21 como baseline de compilacion
-- Ubicacion del modulo: `backend/java/`
+- Ubicacion del modulo: `backend/java/ether-music/`
+- Build tool entrypoint: Maven Wrapper `./mvnw`
 
 ### Frameworks
 

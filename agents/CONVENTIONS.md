@@ -19,8 +19,10 @@ Reglas operativas y de implementacion del proyecto.
 - Seguir la estructura definida en `ARCHITECTURE.md`.
 - `Makefile` concentra build y validacion; `justfile` orquesta tareas sin
   duplicar la logica de `make`.
-- El codigo Java del producto vive en `backend/java/`; la raiz del repo
-  se reserva para orquestacion y documentacion.
+- El codigo Java del producto vive en `backend/java/ether-music/`; la
+  raiz del repo se reserva para orquestacion y documentacion.
+- El modulo Java se ejecuta con Maven Wrapper (`./mvnw`), no con una
+  instalacion global de Maven.
 
 ### Tests
 

@@ -46,7 +46,7 @@
   exponerse en `just` solo como wrapper cuando haga falta.
 - Reemplaza: `none`
 
-### DEC-0004 - El modulo Java vive en `backend/java/`
+### DEC-0004 - El modulo Java vive en `backend/java/ether-music/`
 
 - Fecha: 2026-04-17
 - Estado: `accepted`
@@ -54,9 +54,23 @@
 - Relacionado con tareas: `TASK-0001`, `TASK-0002`, `TASK-0003`
 - Contexto: la raiz del repo estaba acumulando archivos del modulo Java y
   eso mezcla documentacion, orquestacion y codigo ejecutable.
-- Decision: mover `pom.xml` y `src/` a `backend/java/` y dejar en la raiz
-  solo documentacion y entrypoints operativos.
+- Decision: mover `pom.xml` y `src/` a `backend/java/ether-music/` y
+  dejar en la raiz solo documentacion y entrypoints operativos.
 - Consecuencias: la navegacion del repo queda mas clara; cualquier
   comando o documento que apunte al modulo debe referenciar la nueva
   ruta.
+- Reemplaza: `none`
+
+### DEC-0005 - El modulo Java usa Maven Wrapper como entrypoint de build
+
+- Fecha: 2026-04-17
+- Estado: `accepted`
+- Relacionado con specs: `SPEC-0001`
+- Relacionado con tareas: `TASK-0001`, `TASK-0002`, `TASK-0003`
+- Contexto: la operacion del modulo no debe depender de la version de
+  Maven instalada globalmente en cada maquina.
+- Decision: ejecutar build, test y run del modulo mediante `./mvnw`
+  dentro de `backend/java/ether-music/`.
+- Consecuencias: `make` y `just` deben invocar el wrapper del modulo y
+  la documentacion debe mostrar ese path como fuente de verdad.
 - Reemplaza: `none`

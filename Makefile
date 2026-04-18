@@ -1,13 +1,19 @@
-.PHONY: build test verify clean
+MODULE_DIR := backend/java/ether-music
+MVNW := ./mvnw
+
+.PHONY: build test verify clean run
 
 build:
-	mvn -f backend/java/pom.xml package
+	cd $(MODULE_DIR) && $(MVNW) package
 
 test:
-	mvn -f backend/java/pom.xml test
+	cd $(MODULE_DIR) && $(MVNW) test
 
 verify:
-	mvn -f backend/java/pom.xml verify
+	cd $(MODULE_DIR) && $(MVNW) verify
 
 clean:
-	mvn -f backend/java/pom.xml clean
+	cd $(MODULE_DIR) && $(MVNW) clean
+
+run:
+	cd $(MODULE_DIR) && $(MVNW) exec:java

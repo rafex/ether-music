@@ -98,7 +98,8 @@ Al terminar esta iniciativa debe existir una aplicacion local que:
 
 - Commits o PRs:
 - Archivos principales:
-  `backend/java/pom.xml`, `backend/java/src/main/java/*`,
-  `backend/java/src/main/jte/*`
+  `backend/java/ether-music/pom.xml`,
+  `backend/java/ether-music/src/main/java/*`,
+  `backend/java/ether-music/src/main/jte/*`
 - Resultado de validacion:
-  `mvn test`; `GET /` => 200; `GET /api/melodies/generate?...` => 200
+  `./mvnw test`; `GET /` => 200; `GET /api/melodies/generate?...` => 200
