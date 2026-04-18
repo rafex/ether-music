@@ -26,6 +26,10 @@ public final class MusicModule implements JettyModule {
 
     @Override
     public void registerRoutes(final JettyRouteRegistry routes, final JettyModuleContext context) {
+        final var pwa = new PwaStaticHandler();
+        routes.add("/manifest.json", pwa);
+        routes.add("/sw.js", pwa);
+        routes.add("/icons/*", pwa);
         routes.add("/", new HomePageHandler(renderer));
         routes.add("/api/melodies/*", new MelodyApiHandler(context.jsonCodec(), melodyGenerator, repository));
         routes.add("/api/express/*", new ExpressApiHandler(context.jsonCodec(), melodyGenerator, repository));

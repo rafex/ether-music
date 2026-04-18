@@ -5,6 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${model.title()}</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#00e5ff">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Ether Music">
+    <link rel="apple-touch-icon" href="/icons/icon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&display=swap" rel="stylesheet">
@@ -351,6 +358,38 @@
             white-space: nowrap;
         }
 
+        #offline-banner {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 8px 16px;
+            background: rgba(255, 107, 53, 0.92);
+            color: #fff;
+            font-size: 0.75rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            text-align: center;
+            backdrop-filter: blur(4px);
+        }
+
+        #offline-banner.visible {
+            display: block;
+        }
+
+        #install-btn {
+            display: none;
+            border-color: var(--accent3);
+            color: var(--accent3);
+            font-size: 0.72rem;
+        }
+
+        #install-btn.visible {
+            display: inline-block;
+        }
+
         @media (max-width: 720px) {
             body {
                 padding: 16px;
@@ -362,11 +401,15 @@
         }
     </style>
 </head>
+<div id="offline-banner">sin conexión — solo reproducción de canciones guardadas</div>
 <body>
 <main>
     <header>
         <h1>ETHER MUSIC</h1>
         <div class="subtitle">melodia algoritmica via rest + web audio</div>
+        <div style="margin-top:10px;">
+            <button id="install-btn">Instalar app</button>
+        </div>
     </header>
 
     <section class="panel" data-label="Input Mode">
@@ -915,6 +958,43 @@ fetchClassic().then((data) => {
     log("Listo · genera o explora los modos Express, Words y Code");
     loadHistory();
 }).catch((e) => log("No se pudo iniciar: " + e.message));
+
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js', { scope: '/' })
+            .then(reg => { if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' }); })
+            .catch(err => console.warn('SW error:', err));
+    });
+}
+
+const offlineBanner = document.getElementById('offline-banner');
+function updateNetworkStatus() {
+    offlineBanner.classList.toggle('visible', !navigator.onLine);
+}
+window.addEventListener('online', updateNetworkStatus);
+window.addEventListener('offline', updateNetworkStatus);
+updateNetworkStatus();
+
+let deferredInstallPrompt = null;
+const installBtn = document.getElementById('install-btn');
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    installBtn.classList.add('visible');
+});
+installBtn.addEventListener('click', async () => {
+    if (!deferredInstallPrompt) return;
+    deferredInstallPrompt.prompt();
+    const { outcome } = await deferredInstallPrompt.userChoice;
+    if (outcome === 'accepted') log('App instalada');
+    deferredInstallPrompt = null;
+    installBtn.classList.remove('visible');
+});
+window.addEventListener('appinstalled', () => {
+    deferredInstallPrompt = null;
+    installBtn.classList.remove('visible');
+    log('App instalada correctamente');
+});
 </script>
 </body>
 </html>
