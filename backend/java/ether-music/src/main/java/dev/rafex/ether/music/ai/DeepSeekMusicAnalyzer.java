@@ -30,8 +30,11 @@ public final class DeepSeekMusicAnalyzer implements LlmAnalysisPort {
     @Override
     public ElectronicCompositionParams analyzeForMusic(final String content, final String sourceType)
             throws IOException, InterruptedException {
+        final var systemPrompt = "conversation".equals(sourceType)
+                ? MusicPromptBuilder.conversationSystemPrompt()
+                : MusicPromptBuilder.systemPrompt();
         final var messages = List.of(
-                AiMessage.system(MusicPromptBuilder.systemPrompt()),
+                AiMessage.system(systemPrompt),
                 AiMessage.user(MusicPromptBuilder.userPrompt(content, sourceType)));
 
         final var request = new AiChatRequest(MODEL, messages, 0.7, 512);

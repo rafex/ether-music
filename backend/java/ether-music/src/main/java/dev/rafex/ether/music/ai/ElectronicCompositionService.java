@@ -32,6 +32,10 @@ public final class ElectronicCompositionService {
         return compose(wordsJson, "words");
     }
 
+    public ComposedResponse composeFromConversation(final String description) throws IOException, InterruptedException {
+        return compose(description, "conversation");
+    }
+
     private ComposedResponse compose(final String content, final String sourceType)
             throws IOException, InterruptedException {
         final ElectronicCompositionParams params = llm.analyzeForMusic(content, sourceType);

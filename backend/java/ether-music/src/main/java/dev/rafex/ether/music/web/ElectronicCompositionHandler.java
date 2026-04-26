@@ -38,6 +38,8 @@ public final class ElectronicCompositionHandler extends Handler.Abstract {
             sourceType = "text";
         } else if (path.endsWith("/words")) {
             sourceType = "words";
+        } else if (path.endsWith("/conversation")) {
+            sourceType = "conversation";
         } else {
             return false;
         }
@@ -52,6 +54,7 @@ public final class ElectronicCompositionHandler extends Handler.Abstract {
             final ComposedResponse composed = switch (sourceType) {
                 case "code" -> service.composeFromCode(body);
                 case "words" -> service.composeFromWords(body);
+                case "conversation" -> service.composeFromConversation(body);
                 default -> service.composeFromText(body);
             };
             ResponseWriters.plainJson(response, callback, 200, mapper.writeValueAsString(composed));
