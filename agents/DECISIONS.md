@@ -74,3 +74,20 @@
 - Consecuencias: `make` y `just` deben invocar el wrapper del modulo y
   la documentacion debe mostrar ese path como fuente de verdad.
 - Reemplaza: `none`
+
+### DEC-0006 - Despliegue unico en k3s con Helm y una sola replica
+
+- Fecha: 2026-04-24
+- Estado: `accepted`
+- Relacionado con specs: `SPEC-0002`
+- Relacionado con tareas: `TASK-0102`, `TASK-0103`
+- Contexto: el proyecto necesita un camino reproducible a produccion y
+  la referencia operativa ya existe en `HouseDB`, pero `ether-music`
+  persiste en SQLite local.
+- Decision: desplegar `ether-music` como una unica release Helm en k3s,
+  publicada en `music.v1.rafex.cloud`, con una sola replica y un PVC
+  para `/app/data`.
+- Consecuencias: el despliegue queda alineado al servidor actual y es
+  sencillo de operar; a cambio, no se debe habilitar escalado horizontal
+  mientras la persistencia siga basada en SQLite.
+- Reemplaza: `none`

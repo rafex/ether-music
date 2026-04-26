@@ -7,6 +7,8 @@ Indice de iniciativas o capacidades definidas como specs separadas.
 - [`melody-rest-mvp/`](./melody-rest-mvp/):
   primer MVP de generacion melodica via REST con frontend web servido
   por Ether.
+- [`deployment-k3s/`](./deployment-k3s/):
+  empaquetado, publicacion y despliegue de `ether-music` en k3s.
 
 ## Reglas
 

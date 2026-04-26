@@ -2,9 +2,9 @@
 
 ### Ahora
 
-- Levantar el MVP de generacion melodica via REST con Ether.
-- Convertir el mock HTML en una interfaz funcional conectada al backend.
-- Establecer la documentacion base de producto, arquitectura y tareas.
+- Empaquetar y desplegar `ether-music` en k3s bajo `music.v1.rafex.cloud`.
+- Consolidar documentacion operativa para CI/CD y despliegue.
+- Mantener estable la experiencia web y la API mientras se formaliza el release.
 
 ### Despues
 
@@ -21,5 +21,4 @@
 ### No hacer por ahora
 
 - Autenticacion de usuarios.
-- Base de datos o despliegue complejo.
 - Streaming en tiempo real o colaboracion multiusuario.

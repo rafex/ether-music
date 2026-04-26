@@ -11,6 +11,8 @@ El codigo del modulo vive en `backend/java/ether-music/` para no mezclar
 la raiz del repositorio con archivos del runtime.
 La aplicacion persiste las composiciones generadas en SQLite local para
 exponer un historial simple via API.
+Para produccion, el modulo se empaqueta como una imagen OCI y se
+despliega en k3s mediante una release Helm unica.
 
 ## Modulos principales
 
@@ -24,6 +26,8 @@ exponer un historial simple via API.
   adaptador local de Jackson al `JsonCodec` que Ether publica hoy.
 - `db`:
   persistencia SQLite de composiciones y consulta del historial.
+- `helm/ether-music`:
+  manifiestos Kubernetes parametrizados para despliegue en k3s.
 
 ## Flujo principal
 
@@ -43,6 +47,8 @@ exponer un historial simple via API.
 - Mantener la generacion desacoplada de Jetty para poder extraerla
   luego a servicios o tests puros.
 - Mantener el codigo Java contenido en `backend/java/ether-music/`.
+- Mantener una sola replica en produccion mientras SQLite siga siendo la
+  persistencia principal.
 
 ## Riesgos
 

@@ -9,6 +9,8 @@ Documentacion para humanos del proyecto.
   como levantar, probar, navegar el proyecto y configurar DeepSeek.
 - [`api-reference.md`](./api-reference.md):
   endpoints, payloads y ejemplos para consumir la API REST.
+- [`deployment.md`](./deployment.md):
+  como publicar imagen, preparar secretos y desplegar en k3s.
 - [`repository-layout.md`](./repository-layout.md):
   como esta organizado el repo y donde vive cada cosa.
 

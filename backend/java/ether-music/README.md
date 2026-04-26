@@ -9,6 +9,8 @@ Modulo Java principal de `ether-music`.
 - `src/main/java/`: codigo del backend y dominio de melodia.
 - `src/main/jte/`: templates del frontend servido por el backend.
 - `src/test/java/`: pruebas del modulo.
+- `target/ether-music.jar`: artefacto ejecutable empaquetado para
+  despliegue cuando corre `./mvnw package`.
 
 ## Operacion
 

@@ -5,6 +5,7 @@ Indice de modulos Java del repositorio.
 ## Estructura
 
 - `ether-music/`: modulo Java principal del producto.
+- `Dockerfile`: empaquetado contenedor del runtime Java.
 
 ## Navegacion
 

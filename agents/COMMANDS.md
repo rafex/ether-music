@@ -25,13 +25,22 @@ just test
 ### Lint y formato
 
 ```bash
-# pendiente definir
+just helm-lint
+# o directamente:
+make helm-lint
 ```
 
 ### Build
 
 ```bash
 just build
+```
+
+### Package y deploy
+
+```bash
+cd backend/java/ether-music && ./mvnw package
+helm template ether-music ./helm/ether-music
 ```
 
 ### Utilidad

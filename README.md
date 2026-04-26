@@ -9,6 +9,8 @@ REST en Ether y un frontend ligero renderizado con `jte`.
 - `backend/`: codigo ejecutable del producto.
 - `backend/java/ether-music/`: modulo Java con backend Ether y frontend `jte`.
 - `docs/`: documentacion para humanos.
+- `helm/`: chart Helm para despliegue en k3s.
+- `pipelines/`: contexto documental de CI/CD.
 - `tasks/`: plan ejecutable derivado de la spec activa.
 
 ## Estado actual
@@ -44,6 +46,7 @@ Para entender como funciona Ether Music:
 
 - `just build`: construye el artefacto a traves de `make`.
 - `just test`: corre la validacion a traves de `make`.
+- `just helm-lint`: valida el chart Helm.
 - `just run`: levanta la aplicacion en desarrollo.
 - `make ...`: usa `./mvnw` dentro de `backend/java/ether-music`.
 
@@ -58,5 +61,6 @@ Si vas a trabajar en el repo:
 4. Si vas a tocar codigo Java, lee `backend/README.md` y luego
    `backend/java/README.md`.
 5. Si buscas una guia humana de operacion, entra a `docs/README.md`.
-6. Si quieres integrar la API desde clientes HTTP, revisa
+6. Si vas a tocar CI/CD, entra a `pipelines/README.md`.
+7. Si quieres integrar la API desde clientes HTTP, revisa
    `openapi/ether-music.yaml`.

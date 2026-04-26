@@ -23,7 +23,10 @@
 - Servidor HTTP embebido: Jetty 12 via Ether
 - Reproduccion de audio: Web Audio API en navegador
 - Persistencia local: SQLite via `sqlite-jdbc`
-- CI/CD: aun no definido
+- Contenedor: Docker multi-stage con Eclipse Temurin 21
+- Orquestacion: Helm sobre k3s
+- Registro de imagenes: GHCR
+- CI/CD: GitHub Actions
 
 ### Integraciones
 
@@ -35,3 +38,4 @@
 - Compilar con `--release 21`.
 - Mantener el frontend sin bundler en esta fase.
 - No depender de almacenamiento externo para el MVP inicial.
+- Mantener una sola replica mientras la base siga en SQLite.
