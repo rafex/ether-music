@@ -15,5 +15,8 @@ verify:
 clean:
   make clean
 
+helm-lint:
+  make helm-lint
+
 run port="8080":
   cd backend/java/ether-music && PORT={{port}} ./mvnw exec:java

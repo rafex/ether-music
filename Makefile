@@ -1,7 +1,7 @@
 MODULE_DIR := backend/java/ether-music
 MVNW := ./mvnw
 
-.PHONY: build test verify clean run
+.PHONY: build test verify clean run helm-lint
 
 build:
 	cd $(MODULE_DIR) && $(MVNW) package
@@ -11,9 +11,13 @@ test:
 
 verify:
 	cd $(MODULE_DIR) && $(MVNW) verify
+	helm lint helm/ether-music
 
 clean:
 	cd $(MODULE_DIR) && $(MVNW) clean
 
 run:
 	cd $(MODULE_DIR) && $(MVNW) exec:java
+
+helm-lint:
+	helm lint helm/ether-music
