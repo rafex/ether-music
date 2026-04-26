@@ -35,6 +35,7 @@ public final class MusicModule implements JettyModule {
     @Override
     public void registerRoutes(final JettyRouteRegistry routes, final JettyModuleContext context) {
         final var pwa = new PwaStaticHandler();
+        routes.add("/health", new HealthHandler());
         routes.add("/manifest.json", pwa);
         routes.add("/sw.js", pwa);
         routes.add("/icons/*", pwa);
@@ -43,10 +44,18 @@ public final class MusicModule implements JettyModule {
         routes.add("/play", new PlayPageHandler(renderer));
         routes.add("/electronic", new ElectronicPageHandler(renderer));
         routes.add("/agent", new AgentPageHandler(renderer));
+        routes.add("/conversation", new ConversationPageHandler(renderer));
+        routes.add("/feedback", new FeedbackPageHandler(renderer));
+        routes.add("/visual-input", new VisualInputPageHandler(renderer));
+        routes.add("/sequencer", new SequencerPageHandler(renderer));
         routes.add("/api/synthesize", new SynthesizeHandler());
         routes.add("/api/melodies/*", new MelodyApiHandler(context.jsonCodec(), melodyGenerator, repository));
         routes.add("/api/express/*", new ExpressApiHandler(context.jsonCodec(), melodyGenerator, repository));
         routes.add("/api/data/*", new DataApiHandler(context.jsonCodec(), melodyGenerator, repository));
+        routes.add("/api/feedback", new FeedbackApiHandler(melodyGenerator, repository));
+        routes.add("/api/compose/emojis", new EmojiCompositionHandler(melodyGenerator, repository));
+        routes.add("/api/compose/color", new ColorCompositionHandler(melodyGenerator, repository));
+        routes.add("/api/compose/graphic", new GraphicCompositionHandler(repository));
 
         if (repository != null) {
             final var songsHandler = new SongsApiHandler(context.jsonCodec(), repository);

@@ -49,4 +49,28 @@ public final class FrontendRenderer {
         templateEngine.render("pages/agent.jte", model, output);
         return output.toString();
     }
+
+    public String renderConversation(final HomePageModel model) {
+        final var output = new StringOutput();
+        templateEngine.render("pages/conversation.jte", model, output);
+        return output.toString();
+    }
+
+    public String renderFeedback(final HomePageModel model) {
+        final var output = new StringOutput();
+        templateEngine.render("pages/feedback.jte", model, output);
+        return output.toString();
+    }
+
+    public String renderVisualInput(final HomePageModel model) {
+        final var output = new StringOutput();
+        templateEngine.render("pages/visual-input.jte", model, output);
+        return output.toString();
+    }
+
+    public String renderSequencer(final HomePageModel model) {
+        final var output = new StringOutput();
+        templateEngine.render("pages/sequencer.jte", model, output);
+        return output.toString();
+    }
 }

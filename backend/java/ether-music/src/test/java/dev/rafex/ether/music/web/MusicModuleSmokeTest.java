@@ -92,6 +92,15 @@ class MusicModuleSmokeTest {
     }
 
     @Test
+    void healthDevuelve200() throws Exception {
+        final var res = client.send(
+                HttpRequest.newBuilder(URI.create(baseUrl + "/health")).GET().build(),
+                HttpResponse.BodyHandlers.ofString());
+        assertEquals(200, res.statusCode());
+        assertTrue(res.body().contains("\"status\":\"ok\""));
+    }
+
+    @Test
     void melodyApiDevuelveComposicion() throws Exception {
         final var res = client.send(
                 HttpRequest.newBuilder(URI.create(baseUrl + "/api/melodies/generate?root=D&scale=major&steps=8"))
