@@ -1,0 +1,181 @@
+---
+name: Build and Publish Container
+
+on:
+  push:
+    tags:
+      - 'v*.*'
+  workflow_dispatch:
+    inputs:
+      version_tag:
+        description: 'Tag de version para la imagen (formato vN.YYYYmmDD[-N])'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  check_paths:
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.check.outputs.changed }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Check for deployable changes
+        id: check
+        run: |
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ] || [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            echo "Detected manual run or tag push; allowing build."
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          PARENT=$(git rev-parse "${GITHUB_SHA}^" 2>/dev/null || true)
+          PATTERN='^(backend/java/(ether-music|Dockerfile)|helm/ether-music/|\.github/workflows/publish_container\.yml)'
+          if [ -z "$PARENT" ]; then
+            git diff --name-only "${GITHUB_SHA}" | grep -E "$PATTERN" >/dev/null && echo "changed=true" >> "$GITHUB_OUTPUT" || echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            git diff --name-only "$PARENT" "${GITHUB_SHA}" | grep -E "$PATTERN" >/dev/null && echo "changed=true" >> "$GITHUB_OUTPUT" || echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  build-and-push:
+    name: Build and push (${{ matrix.arch }}) to GHCR
+    needs: check_paths
+    if: ${{ github.event_name == 'workflow_dispatch' || needs.check_paths.outputs.changed == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            platform: linux/amd64
+          - arch: arm64
+            platform: linux/arm64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Resolve and validate image tag
+        id: image_tag
+        run: |
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            IMAGE_TAG="${{ github.event.inputs.version_tag }}"
+          else
+            IMAGE_TAG="${GITHUB_REF_NAME}"
+          fi
+
+          if ! echo "$IMAGE_TAG" | grep -Eq '^v[0-9]+\.[0-9]{8}(-[0-9]+)?$'; then
+            echo "Invalid tag format: $IMAGE_TAG"
+            echo "Expected format: vN.YYYYmmDD[-N] (examples: v1.20260424, v1.20260424-1)"
+            exit 1
+          fi
+
+          echo "value=$IMAGE_TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          architecture: x64
+          cache: maven
+
+      - name: Run Maven build
+        working-directory: backend/java/ether-music
+        run: ./mvnw -q -DskipTests package
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: backend/java
+          file: backend/java/Dockerfile
+          push: true
+          provenance: false
+          sbom: false
+          platforms: ${{ matrix.platform }}
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/ether-music:${{ steps.image_tag.outputs.value }}-${{ matrix.arch }}
+            ghcr.io/${{ github.repository_owner }}/ether-music:${{ github.sha }}-${{ matrix.arch }}
+          cache-from: |
+            type=registry,ref=ghcr.io/${{ github.repository_owner }}/ether-music:${{ github.sha }}-${{ matrix.arch }}
+          cache-to: type=inline
+
+      - name: Dump build diagnostics
+        if: failure()
+        run: |
+          echo "=== docker buildx ls ==="
+          docker buildx ls || true
+          echo
+          echo "=== docker ps -a ==="
+          docker ps -a || true
+          echo
+          echo "=== buildkit logs ==="
+          docker logs "$(docker ps -aq --filter 'name=buildx_buildkit')" || true
+
+  publish-manifest:
+    name: Publish multi-arch manifest
+    needs:
+      - check_paths
+      - build-and-push
+    if: ${{ github.event_name == 'workflow_dispatch' || needs.check_paths.outputs.changed == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Resolve and validate image tag
+        id: image_tag
+        run: |
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            IMAGE_TAG="${{ github.event.inputs.version_tag }}"
+          else
+            IMAGE_TAG="${GITHUB_REF_NAME}"
+          fi
+
+          if ! echo "$IMAGE_TAG" | grep -Eq '^v[0-9]+\.[0-9]{8}(-[0-9]+)?$'; then
+            echo "Invalid tag format: $IMAGE_TAG"
+            echo "Expected format: vN.YYYYmmDD[-N] (examples: v1.20260424, v1.20260424-1)"
+            exit 1
+          fi
+
+          echo "value=$IMAGE_TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create multi-arch manifests
+        run: |
+          IMAGE_BASE="ghcr.io/${{ github.repository_owner }}/ether-music"
+          docker buildx imagetools create \
+            --tag "$IMAGE_BASE:${{ steps.image_tag.outputs.value }}" \
+            --tag "$IMAGE_BASE:${{ github.sha }}" \
+            "$IMAGE_BASE:${{ steps.image_tag.outputs.value }}-amd64" \
+            "$IMAGE_BASE:${{ steps.image_tag.outputs.value }}-arm64"
+
+      - name: Inspect multi-arch manifest
+        run: |
+          docker buildx imagetools inspect "ghcr.io/${{ github.repository_owner }}/ether-music:${{ steps.image_tag.outputs.value }}"

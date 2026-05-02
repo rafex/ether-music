@@ -1,0 +1,6 @@
+apiVersion: v2
+name: ether-music
+description: Helm chart para desplegar ether-music en k3s
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
