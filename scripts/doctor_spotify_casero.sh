@@ -28,6 +28,37 @@ extract_mpd_music_dir() {
   ' "${conf}"
 }
 
+expand_user_path() {
+  local raw="$1"
+  if [[ "${raw}" == "~" ]]; then
+    echo "/home/${TARGET_USER}"
+    return
+  fi
+  if [[ "${raw}" == "~/"* ]]; then
+    echo "/home/${TARGET_USER}/${raw#~/}"
+    return
+  fi
+  echo "${raw}"
+}
+
+extract_mpd_audio_output_field() {
+  local conf="$1"
+  local field="$2"
+  [[ -f "${conf}" ]] || return 0
+  awk -v field="${field}" -F'"' '
+    BEGIN { in_block=0; is_shout=0 }
+    /^[[:space:]]*audio_output[[:space:]]*{/ { in_block=1; is_shout=0; next }
+    in_block && /^[[:space:]]*type[[:space:]]*"/ {
+      if ($2 == "shout") { is_shout=1 } else { is_shout=0 }
+      next
+    }
+    in_block && is_shout && $0 ~ "^[[:space:]]*" field "[[:space:]]*\"" {
+      print $2; exit
+    }
+    in_block && /^[[:space:]]*}/ { in_block=0; is_shout=0; next }
+  ' "${conf}"
+}
+
 run_user_cmd() {
   local uid
   uid="$(id -u "${TARGET_USER}")"
@@ -65,10 +96,12 @@ check_files() {
     local mdir
     mdir="$(extract_mpd_music_dir "${MPD_CONF_PATH}")"
     if [[ -n "${mdir}" ]]; then
-      if [[ -d "${mdir}" ]]; then
-        pass "music_directory detectado y existe: ${mdir}"
+      local expanded_mdir
+      expanded_mdir="$(expand_user_path "${mdir}")"
+      if [[ -d "${expanded_mdir}" ]]; then
+        pass "music_directory detectado y existe: ${expanded_mdir}"
       else
-        fail "music_directory detectado pero no existe: ${mdir}"
+        fail "music_directory detectado pero no existe: ${expanded_mdir}"
       fi
     else
       warn "No se detectó music_directory en ${MPD_CONF_PATH}"
@@ -140,7 +173,14 @@ check_mpd_runtime() {
 
 check_icecast_stream() {
   echo "== Stream Icecast =="
-  local url="http://${ICECAST_HOST}:${ICECAST_PORT}${ICECAST_MOUNT}"
+  local mpd_host mpd_port mpd_mount url
+  mpd_host="$(extract_mpd_audio_output_field "${MPD_CONF_PATH}" "host")"
+  mpd_port="$(extract_mpd_audio_output_field "${MPD_CONF_PATH}" "port")"
+  mpd_mount="$(extract_mpd_audio_output_field "${MPD_CONF_PATH}" "mount")"
+  if [[ -n "${mpd_host}" ]]; then ICECAST_HOST="${mpd_host}"; fi
+  if [[ -n "${mpd_port}" ]]; then ICECAST_PORT="${mpd_port}"; fi
+  if [[ -n "${mpd_mount}" ]]; then ICECAST_MOUNT="${mpd_mount}"; fi
+  url="http://${ICECAST_HOST}:${ICECAST_PORT}${ICECAST_MOUNT}"
   local code
   code="$(curl -sS -o /dev/null -w "%{http_code}" --max-time 5 "${url}" || true)"
   case "${code}" in
