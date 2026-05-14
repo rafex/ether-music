@@ -7,6 +7,8 @@ Scripts operativos para preparar el stack de "spotify casero" en Debian.
 - `install_spotify_casero_debian.sh`:
   instala y configura `mpd` + `icecast2`, habilita servicios en
   `systemd`, y deja un stream montado por defecto.
+- `doctor_spotify_casero.sh`:
+  diagnóstico del stack (configs, servicios, stream, endpoints app).
 
 ## Uso rapido
 
@@ -14,6 +16,22 @@ Scripts operativos para preparar el stack de "spotify casero" en Debian.
 cd scripts
 chmod +x install_spotify_casero_debian.sh
 sudo ./install_spotify_casero_debian.sh
+```
+
+## Doctor (validación)
+
+```bash
+cd scripts
+chmod +x doctor_spotify_casero.sh
+./doctor_spotify_casero.sh
+```
+
+Para MPD en `systemd --user`:
+
+```bash
+TARGET_USER=rafex MPD_SYSTEMD_SCOPE=user \
+MPD_CONF_PATH=/home/rafex/.config/mpd/mpd.conf \
+./doctor_spotify_casero.sh
 ```
 
 ## Idempotencia y cache
