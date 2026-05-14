@@ -14,6 +14,7 @@ Desde la raiz del repositorio:
 just test
 just build
 just run
+just native
 ```
 
 ## Comandos directos del modulo
@@ -25,6 +26,7 @@ cd backend/java/ether-music
 ./mvnw test
 ./mvnw package
 PORT=9090 ./mvnw exec:java
+./mvnw -Pnative native:compile
 ```
 
 ## Configuración de DeepSeek (Composición Electrónica)
@@ -52,6 +54,26 @@ Una vez configurada, podrás usar:
 - Endpoint `POST /api/electronic/{code|text|words}` — API REST
 
 **Sin la API key:** Estos endpoints no estarán disponibles (se registran solo si `DEEPSEEK_API_KEY` existe).
+
+## Configuración de MPD + Icecast (Spotify casero)
+
+La página `/radio` y sus endpoints HTMX usan variables de entorno para
+conectar con MPD e Icecast:
+
+```bash
+export MPD_HOST="127.0.0.1"
+export MPD_PORT="6600"
+export MPD_TIMEOUT_MS="1500"
+export ICECAST_STREAM_URL="http://127.0.0.1:8000/live"
+```
+
+Con esto podrás:
+- ver estado de MPD en `/api/radio/status`
+- controlar reproducción en `/api/radio/control`
+- escuchar stream de Icecast en `/radio`
+
+Guía completa de instalación local (Debian + systemd):
+- [`local-spotify.md`](./local-spotify.md)
 
 ## Verificacion manual
 

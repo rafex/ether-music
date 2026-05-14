@@ -11,6 +11,8 @@ Documentacion para humanos del proyecto.
   endpoints, payloads y ejemplos para consumir la API REST.
 - [`deployment.md`](./deployment.md):
   como publicar imagen, preparar secretos y desplegar en k3s.
+- [`local-spotify.md`](./local-spotify.md):
+  instalacion local en Debian de MPD + Icecast con systemd.
 - [`repository-layout.md`](./repository-layout.md):
   como esta organizado el repo y donde vive cada cosa.
 

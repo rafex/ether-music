@@ -20,6 +20,50 @@ despues desde `/api/songs`.
 
 ## Endpoints
 
+### `GET /api/radio/status`
+
+Devuelve un fragmento HTML (pensado para HTMX) con estado actual de
+MPD: track activo, volumen, tiempo y estado online/offline.
+
+Ejemplo:
+
+```bash
+curl "http://127.0.0.1:8080/api/radio/status"
+```
+
+### `GET /api/radio/playlist`
+
+Devuelve un fragmento HTML (HTMX) con la cola actual de MPD.
+
+Ejemplo:
+
+```bash
+curl "http://127.0.0.1:8080/api/radio/playlist"
+```
+
+### `POST /api/radio/control`
+
+Ejecuta acciones de control sobre MPD y responde con el fragmento de
+estado actualizado.
+
+Parámetros `application/x-www-form-urlencoded`:
+- `action=play|pause|next|prev`
+- `action=volume` junto con `value=0..100`
+
+Ejemplos:
+
+```bash
+curl -X POST "http://127.0.0.1:8080/api/radio/control" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "action=play"
+```
+
+```bash
+curl -X POST "http://127.0.0.1:8080/api/radio/control" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "action=volume&value=65"
+```
+
 ### `GET /api/melodies/generate`
 
 Genera una melodia clasica a partir de parametros directos.

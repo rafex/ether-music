@@ -15,11 +15,12 @@ REST en Ether y un frontend ligero renderizado con `jte`.
 
 ## Estado actual
 
-La aplicacion expone tres rutas web:
+La aplicacion expone rutas web de composicion y radio:
 
 - `/` - Pagina de bienvenida con acceso a Crear y Biblioteca
 - `/create` - Interfaz de composicion con cuatro modos (Clasico, Express, Palabras, Codigo)
 - `/play` - Biblioteca de canciones guardadas, reproduccion y filtrado
+- `/radio` - Control de MPD + reproduccion Icecast con HTMX
 
 La API REST:
 
@@ -29,6 +30,9 @@ La API REST:
 - `POST /api/data/code` - composicion desde metricas de sesion de codigo
 - `GET /api/songs` - listado de canciones guardadas
 - `GET /api/songs/{id}` - recuperar cancion completa por ID
+- `GET /api/radio/status` - estado renderizado del reproductor MPD
+- `GET /api/radio/playlist` - playlist renderizada para HTMX
+- `POST /api/radio/control` - control de play/pause/next/prev/volume
 
 PWA:
 - Manifest, Service Worker y iconos instalables
