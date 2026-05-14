@@ -1,7 +1,7 @@
 MODULE_DIR := backend/java/ether-music
 MVNW := ./mvnw
 
-.PHONY: build test verify clean run helm-lint
+.PHONY: build test verify clean run helm-lint native
 
 build:
 	cd $(MODULE_DIR) && $(MVNW) package
@@ -21,3 +21,6 @@ run:
 
 helm-lint:
 	helm lint helm/ether-music
+
+native:
+	cd $(MODULE_DIR) && $(MVNW) -Pnative native:compile
