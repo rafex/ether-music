@@ -26,6 +26,8 @@ El script ahora:
   cambios
 - modo default `NON_INVASIVE=1`: si detecta `mpd.conf` o `icecast.xml`
   existentes, no los toca y los imprime en pantalla para evaluación
+- valida el `mpd.conf` objetivo e imprime dónde MPD espera los audios
+  (`music_directory`)
 
 Forzar ejecución completa:
 
