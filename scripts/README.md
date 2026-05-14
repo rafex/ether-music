@@ -24,11 +24,20 @@ El script ahora:
   `/var/lib/ether-music-radio/install.state`
 - recalcula hash de configuración y solo reescribe/reinicia cuando hay
   cambios
+- protege configuraciones existentes: si detecta `mpd.conf` o
+  `icecast.xml` no gestionados por este script, aborta para no
+  sobrescribirlas
 
 Forzar ejecución completa:
 
 ```bash
 sudo FORCE=1 ./install_spotify_casero_debian.sh
+```
+
+Permitir sobrescritura explícita de configs existentes:
+
+```bash
+sudo ALLOW_OVERWRITE=1 ./install_spotify_casero_debian.sh
 ```
 
 ## Variables opcionales
@@ -60,6 +69,22 @@ También puedes usar otro archivo con:
 ```bash
 sudo CONFIG_FILE=/etc/mi-radio.env ./install_spotify_casero_debian.sh
 ```
+
+## MPD en modo usuario (`systemctl --user`)
+
+Si ya operas MPD en `~/.config/mpd/mpd.conf`:
+
+```bash
+sudo TARGET_USER=rafex \
+     MPD_SYSTEMD_SCOPE=user \
+     MPD_CONF_PATH=/home/rafex/.config/mpd/mpd.conf \
+     ./install_spotify_casero_debian.sh
+```
+
+Variables relevantes:
+- `TARGET_USER`: usuario dueño del servicio MPD
+- `MPD_SYSTEMD_SCOPE`: `user` o `system` (default `auto`)
+- `MPD_CONF_PATH`: ruta del `mpd.conf` a gestionar
 
 Si lo prefieres, sigue siendo posible sobrescribir por entorno:
 

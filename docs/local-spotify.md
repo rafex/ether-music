@@ -34,12 +34,21 @@ Comportamiento:
 - revisa paquetes ya instalados y solo instala faltantes
 - calcula hash de configuración de MPD/Icecast
 - solo reescribe configs y reinicia servicios cuando detecta cambios
+- si detecta configs existentes no gestionadas por el script, aborta
+  para no sobrescribirlas accidentalmente
 
 Forzar ejecución completa:
 
 ```bash
 cd scripts
 sudo FORCE=1 ./install_spotify_casero_debian.sh
+```
+
+Permitir sobrescritura explícita (solo si estás seguro):
+
+```bash
+cd scripts
+sudo ALLOW_OVERWRITE=1 ./install_spotify_casero_debian.sh
 ```
 
 ## 2. Configurar variables en `/etc`
@@ -77,6 +86,24 @@ También puedes usar otro archivo de variables:
 cd scripts
 sudo CONFIG_FILE=/etc/mi-radio.env ./install_spotify_casero_debian.sh
 ```
+
+## 2.1 Caso MPD en modo usuario (`systemctl --user`)
+
+Si tu MPD ya vive en `~/.config/mpd/mpd.conf` y corre como servicio de
+usuario, ejecuta el instalador así:
+
+```bash
+cd scripts
+sudo TARGET_USER=rafex \
+     MPD_SYSTEMD_SCOPE=user \
+     MPD_CONF_PATH=/home/rafex/.config/mpd/mpd.conf \
+     ./install_spotify_casero_debian.sh
+```
+
+Con eso el script:
+- usa `systemctl --user` para MPD
+- opera sobre el `mpd.conf` del usuario
+- evita mezclarlo con `/etc/mpd.conf`
 
 ## 3. Verificar servicios `systemd`
 
@@ -163,3 +190,18 @@ sudo journalctl -u icecast2 -n 100 --no-pager
 Si `/api/radio/status` marca offline:
 - verifica `MPD_HOST` y `MPD_PORT`
 - confirma que MPD esté escuchando en `127.0.0.1:6600`
+
+Si ya tenías una instalación previa y quieres volver al estado anterior:
+
+```bash
+sudo ls -1 /etc/mpd.conf.bak.*
+sudo ls -1 /etc/icecast2/icecast.xml.bak.*
+```
+
+Restaurar backup más reciente (ejemplo):
+
+```bash
+sudo cp -a /etc/mpd.conf.bak.YYYYmmddHHMMSS /etc/mpd.conf
+sudo cp -a /etc/icecast2/icecast.xml.bak.YYYYmmddHHMMSS /etc/icecast2/icecast.xml
+sudo systemctl restart mpd icecast2
+```
