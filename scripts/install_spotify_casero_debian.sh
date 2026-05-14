@@ -13,6 +13,7 @@ STATE_DIR="${STATE_DIR:-/var/lib/ether-music-radio}"
 STATE_FILE="${STATE_FILE:-${STATE_DIR}/install.state}"
 FORCE="${FORCE:-0}"
 ALLOW_OVERWRITE="${ALLOW_OVERWRITE:-0}"
+NON_INVASIVE="${NON_INVASIVE:-1}"
 MANAGED_MARKER="# managed-by=ether-music-radio-installer"
 TARGET_USER="${TARGET_USER:-${SUDO_USER:-}}"
 MPD_SYSTEMD_SCOPE="${MPD_SYSTEMD_SCOPE:-auto}"
@@ -20,7 +21,11 @@ MPD_CONF_PATH="${MPD_CONF_PATH:-}"
 
 if [[ -f "${CONFIG_FILE}" ]]; then
   # shellcheck disable=SC1090
-  source "${CONFIG_FILE}"
+  if ! source "${CONFIG_FILE}"; then
+    echo "ERROR: no se pudo cargar ${CONFIG_FILE}. Revisa comillas/espacios en valores." >&2
+    echo "Ejemplo válido: MPD_STREAM_DESCRIPTION='Spotify casero MPD + Icecast'" >&2
+    exit 4
+  fi
 fi
 
 ICECAST_SOURCE_PASSWORD="${ICECAST_SOURCE_PASSWORD:-changeme-source}"
@@ -62,6 +67,12 @@ backup_file() {
   fi
 }
 
+write_env_var() {
+  local key="$1"
+  local value="$2"
+  printf "%s=%q\n" "${key}" "${value}"
+}
+
 is_managed_file() {
   local file="$1"
   [[ -f "${file}" ]] && grep -qF "${MANAGED_MARKER}" "${file}"
@@ -86,6 +97,14 @@ require_safe_overwrite() {
   echo "Sugerencia: respalda primero con: cp -a ${file} ${file}.manual.bak" >&2
   echo "Referencia (${hint})" >&2
   exit 2
+}
+
+print_config_preview() {
+  local file="$1"
+  local title="$2"
+  echo "----- ${title}: ${file} (preview) -----"
+  sed -n '1,120p' "${file}" || true
+  echo "----- fin preview ${title} -----"
 }
 
 is_pkg_installed() {
@@ -158,17 +177,17 @@ install_missing_packages
 
 echo "[2/9] Creando archivo de configuracion en /etc..."
 if [[ ! -f "${CONFIG_FILE}" ]]; then
-  cat >"${CONFIG_FILE}" <<EOF
-ICECAST_SOURCE_PASSWORD=${ICECAST_SOURCE_PASSWORD}
-ICECAST_ADMIN_PASSWORD=${ICECAST_ADMIN_PASSWORD}
-ICECAST_RELAY_PASSWORD=${ICECAST_RELAY_PASSWORD}
-ICECAST_HOST=${ICECAST_HOST}
-ICECAST_PORT=${ICECAST_PORT}
-ICECAST_MOUNT=${ICECAST_MOUNT}
-MPD_MUSIC_DIR=${MPD_MUSIC_DIR}
-MPD_STREAM_NAME=${MPD_STREAM_NAME}
-MPD_STREAM_DESCRIPTION=${MPD_STREAM_DESCRIPTION}
-EOF
+  {
+    write_env_var "ICECAST_SOURCE_PASSWORD" "${ICECAST_SOURCE_PASSWORD}"
+    write_env_var "ICECAST_ADMIN_PASSWORD" "${ICECAST_ADMIN_PASSWORD}"
+    write_env_var "ICECAST_RELAY_PASSWORD" "${ICECAST_RELAY_PASSWORD}"
+    write_env_var "ICECAST_HOST" "${ICECAST_HOST}"
+    write_env_var "ICECAST_PORT" "${ICECAST_PORT}"
+    write_env_var "ICECAST_MOUNT" "${ICECAST_MOUNT}"
+    write_env_var "MPD_MUSIC_DIR" "${MPD_MUSIC_DIR}"
+    write_env_var "MPD_STREAM_NAME" "${MPD_STREAM_NAME}"
+    write_env_var "MPD_STREAM_DESCRIPTION" "${MPD_STREAM_DESCRIPTION}"
+  } >"${CONFIG_FILE}"
   chmod 600 "${CONFIG_FILE}"
 fi
 
@@ -186,8 +205,24 @@ else
 fi
 mark_step_done "mpd_dirs" "$(sha_cfg "${MPD_MUSIC_DIR}")"
 
-require_safe_overwrite "/etc/icecast2/icecast.xml" "icecast config"
-require_safe_overwrite "${MPD_CONF_PATH}" "mpd config"
+APPLY_ICECAST_CONFIG=1
+APPLY_MPD_CONFIG=1
+
+if [[ "${NON_INVASIVE}" == "1" && -f "/etc/icecast2/icecast.xml" ]]; then
+  echo "[4/9] NON_INVASIVE=1: configuración Icecast existente detectada. No se sobrescribe."
+  print_config_preview "/etc/icecast2/icecast.xml" "icecast2"
+  APPLY_ICECAST_CONFIG=0
+else
+  require_safe_overwrite "/etc/icecast2/icecast.xml" "icecast config"
+fi
+
+if [[ "${NON_INVASIVE}" == "1" && -f "${MPD_CONF_PATH}" ]]; then
+  echo "[6/9] NON_INVASIVE=1: configuración MPD existente detectada. No se sobrescribe."
+  print_config_preview "${MPD_CONF_PATH}" "mpd"
+  APPLY_MPD_CONFIG=0
+else
+  require_safe_overwrite "${MPD_CONF_PATH}" "mpd config"
+fi
 
 ICECAST_CFG_CONTENT="$(cat <<EOF
 ${MANAGED_MARKER}
@@ -249,11 +284,13 @@ EOF
 )"
 
 ICECAST_HASH="$(sha_cfg "${ICECAST_CFG_CONTENT}")"
-if should_run_step "icecast_cfg" "${ICECAST_HASH}"; then
+if [[ "${APPLY_ICECAST_CONFIG}" == "1" ]] && should_run_step "icecast_cfg" "${ICECAST_HASH}"; then
   echo "[4/9] Configurando Icecast..."
   backup_file /etc/icecast2/icecast.xml
   printf "%s\n" "${ICECAST_CFG_CONTENT}" >/etc/icecast2/icecast.xml
   mark_step_done "icecast_cfg" "${ICECAST_HASH}"
+elif [[ "${APPLY_ICECAST_CONFIG}" == "0" ]]; then
+  mark_step_done "icecast_cfg" "non-invasive-skip"
 else
   echo "[4/9] Configuración Icecast sin cambios. Saltando."
 fi
@@ -339,7 +376,7 @@ EOF
 fi
 
 MPD_HASH="$(sha_cfg "${MPD_CFG_CONTENT}")"
-if should_run_step "mpd_cfg" "${MPD_HASH}"; then
+if [[ "${APPLY_MPD_CONFIG}" == "1" ]] && should_run_step "mpd_cfg" "${MPD_HASH}"; then
   echo "[6/9] Configurando MPD (${MPD_SYSTEMD_SCOPE}) para emitir a Icecast..."
   backup_file "${MPD_CONF_PATH}"
   printf "%s\n" "${MPD_CFG_CONTENT}" >"${MPD_CONF_PATH}"
@@ -347,13 +384,18 @@ if should_run_step "mpd_cfg" "${MPD_HASH}"; then
     chown "${TARGET_USER}:${TARGET_USER}" "${MPD_CONF_PATH}"
   fi
   mark_step_done "mpd_cfg" "${MPD_HASH}"
+elif [[ "${APPLY_MPD_CONFIG}" == "0" ]]; then
+  mark_step_done "mpd_cfg" "non-invasive-skip"
 else
   echo "[6/9] Configuración MPD sin cambios. Saltando."
 fi
 
 SYSTEMD_HASH_INPUT="${ICECAST_HASH}:${MPD_HASH}:$(systemctl is-enabled icecast2.service 2>/dev/null || true):$(systemctl is-enabled mpd.service 2>/dev/null || true)"
 SYSTEMD_HASH="$(sha_cfg "${SYSTEMD_HASH_INPUT}")"
-if should_run_step "systemd_apply" "${SYSTEMD_HASH}"; then
+if [[ "${NON_INVASIVE}" == "1" && "${APPLY_ICECAST_CONFIG}" == "0" && "${APPLY_MPD_CONFIG}" == "0" ]]; then
+  echo "[7/9] NON_INVASIVE=1: configs existentes preservadas. No se reinician servicios."
+  mark_step_done "systemd_apply" "non-invasive-skip"
+elif should_run_step "systemd_apply" "${SYSTEMD_HASH}"; then
   echo "[7/9] Reiniciando y habilitando servicios systemd..."
   systemctl daemon-reload
   systemctl enable icecast2.service
@@ -413,6 +455,7 @@ echo "MPD control socket:  ${ICECAST_HOST}:6600"
 echo "Config file:         ${CONFIG_FILE}"
 echo "MPD conf:            ${MPD_CONF_PATH}"
 echo "MPD scope:           ${MPD_SYSTEMD_SCOPE}"
+echo "Non invasive:        ${NON_INVASIVE}"
 echo "State cache:         ${STATE_FILE}"
 echo
 echo "Siguiente paso sugerido:"
