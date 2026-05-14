@@ -9,6 +9,9 @@ fi
 export DEBIAN_FRONTEND=noninteractive
 
 CONFIG_FILE="${CONFIG_FILE:-/etc/ether-music-radio.env}"
+STATE_DIR="${STATE_DIR:-/var/lib/ether-music-radio}"
+STATE_FILE="${STATE_FILE:-${STATE_DIR}/install.state}"
+FORCE="${FORCE:-0}"
 
 if [[ -f "${CONFIG_FILE}" ]]; then
   # shellcheck disable=SC1090
@@ -25,6 +28,8 @@ MPD_MUSIC_DIR="${MPD_MUSIC_DIR:-/var/lib/mpd/music}"
 MPD_STREAM_NAME="${MPD_STREAM_NAME:-Ether Music Radio}"
 MPD_STREAM_DESCRIPTION="${MPD_STREAM_DESCRIPTION:-Spotify casero con MPD + Icecast}"
 
+install -d -m 0755 "${STATE_DIR}"
+
 backup_file() {
   local file="$1"
   if [[ -f "${file}" ]]; then
@@ -32,10 +37,67 @@ backup_file() {
   fi
 }
 
-echo "[1/8] Instalando dependencias en Debian..."
-apt-get update -y
-apt-get install -y --no-install-recommends \
-  mpd mpc icecast2 ca-certificates curl
+is_pkg_installed() {
+  dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -q "install ok installed"
+}
+
+should_run_step() {
+  local step_key="$1"
+  local step_hash="$2"
+
+  if [[ "${FORCE}" == "1" ]]; then
+    return 0
+  fi
+
+  if [[ ! -f "${STATE_FILE}" ]]; then
+    return 0
+  fi
+
+  local current
+  current="$(grep -E "^${step_key}=" "${STATE_FILE}" | head -n1 | cut -d'=' -f2- || true)"
+  [[ "${current}" != "${step_hash}" ]]
+}
+
+mark_step_done() {
+  local step_key="$1"
+  local step_hash="$2"
+
+  touch "${STATE_FILE}"
+  if grep -qE "^${step_key}=" "${STATE_FILE}"; then
+    sed -i "s|^${step_key}=.*|${step_key}=${step_hash}|" "${STATE_FILE}"
+  else
+    echo "${step_key}=${step_hash}" >>"${STATE_FILE}"
+  fi
+}
+
+sha_cfg() {
+  local input="$1"
+  printf "%s" "${input}" | sha256sum | awk '{print $1}'
+}
+
+install_missing_packages() {
+  local missing=()
+  local packages=(mpd mpc icecast2 ca-certificates curl)
+
+  for pkg in "${packages[@]}"; do
+    if ! is_pkg_installed "${pkg}"; then
+      missing+=("${pkg}")
+    fi
+  done
+
+  if [[ "${#missing[@]}" -eq 0 ]]; then
+    echo "[1/9] Dependencias ya instaladas. Saltando apt."
+    mark_step_done "packages" "installed"
+    return 0
+  fi
+
+  echo "[1/9] Instalando dependencias faltantes: ${missing[*]}"
+  apt-get update -y
+  apt-get install -y --no-install-recommends "${missing[@]}"
+  mark_step_done "packages" "installed"
+}
+
+install_missing_packages
 
 echo "[2/8] Creando archivo de configuracion en /etc..."
 if [[ ! -f "${CONFIG_FILE}" ]]; then
@@ -53,15 +115,16 @@ EOF
   chmod 600 "${CONFIG_FILE}"
 fi
 
-echo "[3/8] Asegurando carpetas base de MPD..."
+echo "[2/9] Archivo de configuración listo: ${CONFIG_FILE}"
+
+echo "[3/9] Asegurando carpetas base de MPD..."
 install -d -o mpd -g audio -m 0755 "${MPD_MUSIC_DIR}"
 install -d -o mpd -g audio -m 0755 /var/lib/mpd/playlists
 install -d -o mpd -g audio -m 0755 /var/log/mpd
 install -d -o mpd -g audio -m 0755 /run/mpd
+mark_step_done "mpd_dirs" "$(sha_cfg "${MPD_MUSIC_DIR}")"
 
-echo "[4/8] Configurando Icecast..."
-backup_file /etc/icecast2/icecast.xml
-cat >/etc/icecast2/icecast.xml <<EOF
+ICECAST_CFG_CONTENT="$(cat <<EOF
 <icecast>
   <location>Debian</location>
   <admin>admin@localhost</admin>
@@ -117,13 +180,27 @@ cat >/etc/icecast2/icecast.xml <<EOF
   </security>
 </icecast>
 EOF
+)"
 
-echo "[5/8] Habilitando daemon de Icecast..."
-sed -i 's/^ENABLE=.*/ENABLE=true/' /etc/default/icecast2
+ICECAST_HASH="$(sha_cfg "${ICECAST_CFG_CONTENT}")"
+if should_run_step "icecast_cfg" "${ICECAST_HASH}"; then
+  echo "[4/9] Configurando Icecast..."
+  backup_file /etc/icecast2/icecast.xml
+  printf "%s\n" "${ICECAST_CFG_CONTENT}" >/etc/icecast2/icecast.xml
+  mark_step_done "icecast_cfg" "${ICECAST_HASH}"
+else
+  echo "[4/9] Configuración Icecast sin cambios. Saltando."
+fi
 
-echo "[6/8] Configurando MPD para emitir a Icecast..."
-backup_file /etc/mpd.conf
-cat >/etc/mpd.conf <<EOF
+if grep -q '^ENABLE=true' /etc/default/icecast2 2>/dev/null; then
+  echo "[5/9] icecast2 ya habilitado en /etc/default/icecast2."
+else
+  echo "[5/9] Habilitando daemon de Icecast..."
+  sed -i 's/^ENABLE=.*/ENABLE=true/' /etc/default/icecast2
+fi
+mark_step_done "icecast_enable" "true"
+
+MPD_CFG_CONTENT="$(cat <<EOF
 music_directory         "${MPD_MUSIC_DIR}"
 playlist_directory      "/var/lib/mpd/playlists"
 db_file                 "/var/lib/mpd/tag_cache"
@@ -155,17 +232,40 @@ audio_output {
     mixer_type      "software"
 }
 EOF
+)"
 
-echo "[7/8] Reiniciando y habilitando servicios systemd..."
-systemctl daemon-reload
-systemctl enable icecast2.service
-systemctl enable mpd.service
-systemctl restart icecast2.service
-systemctl restart mpd.service
+MPD_HASH="$(sha_cfg "${MPD_CFG_CONTENT}")"
+if should_run_step "mpd_cfg" "${MPD_HASH}"; then
+  echo "[6/9] Configurando MPD para emitir a Icecast..."
+  backup_file /etc/mpd.conf
+  printf "%s\n" "${MPD_CFG_CONTENT}" >/etc/mpd.conf
+  mark_step_done "mpd_cfg" "${MPD_HASH}"
+else
+  echo "[6/9] Configuración MPD sin cambios. Saltando."
+fi
 
-echo "[8/8] Actualizando base de datos de MPD..."
-if ! sudo -u mpd mpc update >/dev/null 2>&1; then
-  echo "Aviso: no se pudo ejecutar 'mpc update' como usuario mpd."
+SYSTEMD_HASH_INPUT="${ICECAST_HASH}:${MPD_HASH}:$(systemctl is-enabled icecast2.service 2>/dev/null || true):$(systemctl is-enabled mpd.service 2>/dev/null || true)"
+SYSTEMD_HASH="$(sha_cfg "${SYSTEMD_HASH_INPUT}")"
+if should_run_step "systemd_apply" "${SYSTEMD_HASH}"; then
+  echo "[7/9] Reiniciando y habilitando servicios systemd..."
+  systemctl daemon-reload
+  systemctl enable icecast2.service
+  systemctl enable mpd.service
+  systemctl restart icecast2.service
+  systemctl restart mpd.service
+  mark_step_done "systemd_apply" "${SYSTEMD_HASH}"
+else
+  echo "[7/9] Servicios systemd ya aplicados para esta configuración. Saltando restart."
+fi
+
+echo "[8/9] Actualizando base de datos de MPD (si hay cambios de música hazlo manual)..."
+if should_run_step "mpd_update" "baseline"; then
+  if ! sudo -u mpd mpc update >/dev/null 2>&1; then
+    echo "Aviso: no se pudo ejecutar 'mpc update' como usuario mpd."
+  fi
+  mark_step_done "mpd_update" "baseline"
+else
+  echo "Base de MPD ya inicializada. Saltando update automático."
 fi
 
 echo "[9/9] Estado de servicios y endpoints..."
@@ -178,6 +278,7 @@ echo "Icecast status page: http://${ICECAST_HOST}:${ICECAST_PORT}/"
 echo "Stream mount:        http://${ICECAST_HOST}:${ICECAST_PORT}${ICECAST_MOUNT}"
 echo "MPD control socket:  ${ICECAST_HOST}:6600"
 echo "Config file:         ${CONFIG_FILE}"
+echo "State cache:         ${STATE_FILE}"
 echo
 echo "Siguiente paso sugerido:"
 echo "1) Coloca archivos de audio en: ${MPD_MUSIC_DIR}"
