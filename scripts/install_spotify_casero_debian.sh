@@ -107,6 +107,36 @@ print_config_preview() {
   echo "----- fin preview ${title} -----"
 }
 
+extract_mpd_music_dir() {
+  local conf="$1"
+  [[ -f "${conf}" ]] || return 0
+  awk -F'"' '
+    /^[[:space:]]*music_directory[[:space:]]*"/ { print $2; exit }
+  ' "${conf}"
+}
+
+validate_existing_mpd_conf() {
+  local conf="$1"
+  if [[ -f "${conf}" ]]; then
+    echo "[VAL] MPD conf detectado: ${conf}"
+    local detected_dir
+    detected_dir="$(extract_mpd_music_dir "${conf}")"
+    if [[ -n "${detected_dir}" ]]; then
+      echo "[VAL] MPD espera audio en: ${detected_dir}"
+      if [[ -d "${detected_dir}" ]]; then
+        echo "[VAL] Directorio de audio existe."
+      else
+        echo "[VAL][WARN] Directorio de audio no existe: ${detected_dir}"
+      fi
+    else
+      echo "[VAL][WARN] No se pudo detectar 'music_directory' en ${conf}"
+    fi
+  else
+    echo "[VAL] MPD conf no existe todavía en: ${conf}"
+    echo "[VAL] Se generará uno nuevo con music_directory=${MPD_MUSIC_DIR}"
+  fi
+}
+
 is_pkg_installed() {
   dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -q "install ok installed"
 }
@@ -172,6 +202,8 @@ install_missing_packages() {
   apt-get install -y --no-install-recommends "${missing[@]}"
   mark_step_done "packages" "installed"
 }
+
+validate_existing_mpd_conf "${MPD_CONF_PATH}"
 
 install_missing_packages
 
@@ -459,7 +491,12 @@ echo "Non invasive:        ${NON_INVASIVE}"
 echo "State cache:         ${STATE_FILE}"
 echo
 echo "Siguiente paso sugerido:"
-echo "1) Coloca archivos de audio en: ${MPD_MUSIC_DIR}"
+LIVE_MPD_MUSIC_DIR="$(extract_mpd_music_dir "${MPD_CONF_PATH}")"
+if [[ -n "${LIVE_MPD_MUSIC_DIR}" ]]; then
+  echo "1) Coloca archivos de audio en: ${LIVE_MPD_MUSIC_DIR}"
+else
+  echo "1) Coloca archivos de audio en: ${MPD_MUSIC_DIR}"
+fi
 echo "2) Ejecuta: mpc update"
 echo "3) Ejecuta: mpc ls | head"
 echo "4) Ejecuta: mpc add / && mpc play"
