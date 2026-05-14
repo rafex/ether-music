@@ -57,8 +57,23 @@ Una vez configurada, podrás usar:
 
 ## Configuración de MPD + Icecast (Spotify casero)
 
-La página `/radio` y sus endpoints HTMX usan variables de entorno para
-conectar con MPD e Icecast:
+La instalación recomendada usa el script de Debian que toma variables
+desde `/etc/ether-music-radio.env` y maneja cache de pasos:
+
+```bash
+cd scripts
+sudo ./install_spotify_casero_debian.sh
+```
+
+Forzar ejecución completa del instalador:
+
+```bash
+cd scripts
+sudo FORCE=1 ./install_spotify_casero_debian.sh
+```
+
+La app `/radio` y sus endpoints HTMX usan estas variables de entorno
+para conectar con MPD e Icecast:
 
 ```bash
 export MPD_HOST="127.0.0.1"

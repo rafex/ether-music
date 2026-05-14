@@ -16,6 +16,21 @@ chmod +x install_spotify_casero_debian.sh
 sudo ./install_spotify_casero_debian.sh
 ```
 
+## Idempotencia y cache
+
+El script ahora:
+- detecta paquetes ya instalados y solo instala faltantes
+- guarda estado de pasos en:
+  `/var/lib/ether-music-radio/install.state`
+- recalcula hash de configuración y solo reescribe/reinicia cuando hay
+  cambios
+
+Forzar ejecución completa:
+
+```bash
+sudo FORCE=1 ./install_spotify_casero_debian.sh
+```
+
 ## Variables opcionales
 
 Por defecto el script usa un archivo en:

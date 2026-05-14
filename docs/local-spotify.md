@@ -22,6 +22,25 @@ El script:
 - configura `/etc/icecast2/icecast.xml`
 - habilita y reinicia servicios con `systemd`
 - crea o usa `/etc/ether-music-radio.env`
+- es idempotente: si no hay cambios, evita repetir pasos
+
+## 1.1 Idempotencia y cache del instalador
+
+El script guarda estado de ejecución en:
+
+`/var/lib/ether-music-radio/install.state`
+
+Comportamiento:
+- revisa paquetes ya instalados y solo instala faltantes
+- calcula hash de configuración de MPD/Icecast
+- solo reescribe configs y reinicia servicios cuando detecta cambios
+
+Forzar ejecución completa:
+
+```bash
+cd scripts
+sudo FORCE=1 ./install_spotify_casero_debian.sh
+```
 
 ## 2. Configurar variables en `/etc`
 
@@ -52,6 +71,13 @@ cd scripts
 sudo ./install_spotify_casero_debian.sh
 ```
 
+También puedes usar otro archivo de variables:
+
+```bash
+cd scripts
+sudo CONFIG_FILE=/etc/mi-radio.env ./install_spotify_casero_debian.sh
+```
+
 ## 3. Verificar servicios `systemd`
 
 ```bash
@@ -64,6 +90,13 @@ Habilitados al arranque:
 ```bash
 sudo systemctl is-enabled icecast2
 sudo systemctl is-enabled mpd
+```
+
+Estado de cache:
+
+```bash
+sudo ls -l /var/lib/ether-music-radio/install.state
+sudo cat /var/lib/ether-music-radio/install.state
 ```
 
 ## 4. Cargar musica y arrancar reproducción

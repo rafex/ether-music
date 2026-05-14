@@ -6,6 +6,7 @@
 - `Makefile`: build y validacion.
 - `justfile`: task runner de entrada.
 - `docs/`: documentacion para humanos.
+- `scripts/`: instaladores operativos (MPD + Icecast para Debian).
 - `agents/`: contexto de SpecNative y agentes.
 - `tasks/`: ejecucion trazable derivada de specs.
 - `workflows/`: procedimientos repetibles del framework.
