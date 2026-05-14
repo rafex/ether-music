@@ -15,6 +15,7 @@
         <ether.version>3.0.8-v20260303</ether.version>
         <jte.version>3.2.3</jte.version>
         <junit.version>5.13.4</junit.version>
+        <native.maven.plugin.version>0.11.1</native.maven.plugin.version>
     </properties>
 
     <dependencies>
@@ -125,4 +126,29 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>native</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <version>${native.maven.plugin.version}</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <mainClass>dev.rafex.ether.music.EtherMusicApplication</mainClass>
+                            <imageName>ether-music</imageName>
+                            <buildArgs>
+                                <buildArg>--no-fallback</buildArg>
+                                <buildArg>--enable-http</buildArg>
+                                <buildArg>--enable-https</buildArg>
+                            </buildArgs>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
