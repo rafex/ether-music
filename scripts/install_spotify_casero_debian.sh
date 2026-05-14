@@ -205,6 +205,27 @@ install_missing_packages() {
 
 validate_existing_mpd_conf "${MPD_CONF_PATH}"
 
+normalize_user_path() {
+  local raw="$1"
+  if [[ "${raw}" == "~" ]]; then
+    echo "/home/${TARGET_USER}"
+    return
+  fi
+  if [[ "${raw}" == "~/"* ]]; then
+    echo "/home/${TARGET_USER}/${raw#~/}"
+    return
+  fi
+  if [[ "${raw}" == "/home/${TARGET_USER}/~/"* ]]; then
+    echo "/home/${TARGET_USER}/${raw#"/home/${TARGET_USER}/~/"}"
+    return
+  fi
+  echo "${raw}"
+}
+
+if [[ "${MPD_SYSTEMD_SCOPE}" == "user" ]]; then
+  MPD_MUSIC_DIR="$(normalize_user_path "${MPD_MUSIC_DIR}")"
+fi
+
 install_missing_packages
 
 echo "[2/9] Creando archivo de configuracion en /etc..."
