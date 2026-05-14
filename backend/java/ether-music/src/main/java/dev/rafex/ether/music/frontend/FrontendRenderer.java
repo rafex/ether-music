@@ -73,4 +73,10 @@ public final class FrontendRenderer {
         templateEngine.render("pages/sequencer.jte", model, output);
         return output.toString();
     }
+
+    public String renderRadio(final HomePageModel model) {
+        final var output = new StringOutput();
+        templateEngine.render("pages/radio.jte", model, output);
+        return output.toString();
+    }
 }
