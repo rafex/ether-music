@@ -236,6 +236,13 @@
                 <p class="cta-description">Explora y reproduce todas tus composiciones guardadas. Redescubre tu trabajo.</p>
                 <span class="cta-arrow">→ Ir</span>
             </a>
+
+            <a href="/radio" class="cta-card">
+                <div class="cta-icon">📻</div>
+                <h2 class="cta-title">Radio</h2>
+                <p class="cta-description">Controla MPD y escucha el stream de Icecast desde una sola interfaz HTMX.</p>
+                <span class="cta-arrow">→ Ir</span>
+            </a>
         </div>
 
         <footer>
