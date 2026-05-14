@@ -34,8 +34,8 @@ Comportamiento:
 - revisa paquetes ya instalados y solo instala faltantes
 - calcula hash de configuración de MPD/Icecast
 - solo reescribe configs y reinicia servicios cuando detecta cambios
-- si detecta configs existentes no gestionadas por el script, aborta
-  para no sobrescribirlas accidentalmente
+- `NON_INVASIVE=1` por default: si detecta configs existentes, no las
+  sobrescribe y muestra preview en pantalla para evaluación
 
 Forzar ejecución completa:
 
@@ -48,7 +48,7 @@ Permitir sobrescritura explícita (solo si estás seguro):
 
 ```bash
 cd scripts
-sudo ALLOW_OVERWRITE=1 ./install_spotify_casero_debian.sh
+sudo NON_INVASIVE=0 ALLOW_OVERWRITE=1 ./install_spotify_casero_debian.sh
 ```
 
 ## 2. Configurar variables en `/etc`
@@ -68,8 +68,8 @@ ICECAST_HOST=127.0.0.1
 ICECAST_PORT=8000
 ICECAST_MOUNT=/live
 MPD_MUSIC_DIR=/var/lib/mpd/music
-MPD_STREAM_NAME=Ether Radio
-MPD_STREAM_DESCRIPTION=Spotify casero MPD + Icecast
+MPD_STREAM_NAME='Ether Radio'
+MPD_STREAM_DESCRIPTION='Spotify casero MPD + Icecast'
 EOF
 ```
 

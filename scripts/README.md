@@ -24,9 +24,8 @@ El script ahora:
   `/var/lib/ether-music-radio/install.state`
 - recalcula hash de configuración y solo reescribe/reinicia cuando hay
   cambios
-- protege configuraciones existentes: si detecta `mpd.conf` o
-  `icecast.xml` no gestionados por este script, aborta para no
-  sobrescribirlas
+- modo default `NON_INVASIVE=1`: si detecta `mpd.conf` o `icecast.xml`
+  existentes, no los toca y los imprime en pantalla para evaluación
 
 Forzar ejecución completa:
 
@@ -34,10 +33,16 @@ Forzar ejecución completa:
 sudo FORCE=1 ./install_spotify_casero_debian.sh
 ```
 
+Desactivar modo non-invasive y permitir cambios de config:
+
+```bash
+sudo NON_INVASIVE=0 ./install_spotify_casero_debian.sh
+```
+
 Permitir sobrescritura explícita de configs existentes:
 
 ```bash
-sudo ALLOW_OVERWRITE=1 ./install_spotify_casero_debian.sh
+sudo NON_INVASIVE=0 ALLOW_OVERWRITE=1 ./install_spotify_casero_debian.sh
 ```
 
 ## Variables opcionales
@@ -59,8 +64,8 @@ ICECAST_HOST=127.0.0.1
 ICECAST_PORT=8000
 ICECAST_MOUNT=/live
 MPD_MUSIC_DIR=/var/lib/mpd/music
-MPD_STREAM_NAME=Ether Radio
-MPD_STREAM_DESCRIPTION=Spotify casero MPD + Icecast
+MPD_STREAM_NAME='Ether Radio'
+MPD_STREAM_DESCRIPTION='Spotify casero MPD + Icecast'
 EOF
 ```
 
