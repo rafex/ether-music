@@ -9,6 +9,9 @@ Scripts operativos para preparar el stack de "spotify casero" en Debian.
   `systemd`, y deja un stream montado por defecto.
 - `doctor_spotify_casero.sh`:
   diagnóstico del stack (configs, servicios, stream, endpoints app).
+- `install_java_temurin25_debian.sh`:
+  instala Temurin 25 LTS (tar.gz), valida SHA-256, configura
+  `/etc/profile.d/java.sh` y registra binarios con `update-alternatives`.
 
 ## Uso rapido
 
@@ -24,6 +27,14 @@ sudo ./install_spotify_casero_debian.sh
 cd scripts
 chmod +x doctor_spotify_casero.sh
 ./doctor_spotify_casero.sh
+```
+
+## Instalar Java 25 (Temurin)
+
+```bash
+cd scripts
+chmod +x install_java_temurin25_debian.sh
+sudo ./install_java_temurin25_debian.sh
 ```
 
 Para MPD en `systemd --user`:
