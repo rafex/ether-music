@@ -104,6 +104,7 @@ Con eso el script:
 - usa `systemctl --user` para MPD
 - opera sobre el `mpd.conf` del usuario
 - evita mezclarlo con `/etc/mpd.conf`
+- normaliza rutas tipo `~/Music` a `/home/<usuario>/Music`
 
 ## 3. Verificar servicios `systemd`
 
