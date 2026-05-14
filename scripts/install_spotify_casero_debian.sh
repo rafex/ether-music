@@ -12,6 +12,11 @@ CONFIG_FILE="${CONFIG_FILE:-/etc/ether-music-radio.env}"
 STATE_DIR="${STATE_DIR:-/var/lib/ether-music-radio}"
 STATE_FILE="${STATE_FILE:-${STATE_DIR}/install.state}"
 FORCE="${FORCE:-0}"
+ALLOW_OVERWRITE="${ALLOW_OVERWRITE:-0}"
+MANAGED_MARKER="# managed-by=ether-music-radio-installer"
+TARGET_USER="${TARGET_USER:-${SUDO_USER:-}}"
+MPD_SYSTEMD_SCOPE="${MPD_SYSTEMD_SCOPE:-auto}"
+MPD_CONF_PATH="${MPD_CONF_PATH:-}"
 
 if [[ -f "${CONFIG_FILE}" ]]; then
   # shellcheck disable=SC1090
@@ -30,11 +35,57 @@ MPD_STREAM_DESCRIPTION="${MPD_STREAM_DESCRIPTION:-Spotify casero con MPD + Iceca
 
 install -d -m 0755 "${STATE_DIR}"
 
+if [[ -z "${TARGET_USER}" ]]; then
+  TARGET_USER="$(logname 2>/dev/null || true)"
+fi
+
+if [[ "${MPD_SYSTEMD_SCOPE}" == "auto" ]]; then
+  if [[ -n "${TARGET_USER}" && -f "/home/${TARGET_USER}/.config/mpd/mpd.conf" ]]; then
+    MPD_SYSTEMD_SCOPE="user"
+  else
+    MPD_SYSTEMD_SCOPE="system"
+  fi
+fi
+
+if [[ -z "${MPD_CONF_PATH}" ]]; then
+  if [[ "${MPD_SYSTEMD_SCOPE}" == "user" ]]; then
+    MPD_CONF_PATH="/home/${TARGET_USER}/.config/mpd/mpd.conf"
+  else
+    MPD_CONF_PATH="/etc/mpd.conf"
+  fi
+fi
+
 backup_file() {
   local file="$1"
   if [[ -f "${file}" ]]; then
     cp -a "${file}" "${file}.bak.$(date +%Y%m%d%H%M%S)"
   fi
+}
+
+is_managed_file() {
+  local file="$1"
+  [[ -f "${file}" ]] && grep -qF "${MANAGED_MARKER}" "${file}"
+}
+
+require_safe_overwrite() {
+  local file="$1"
+  local hint="$2"
+  if [[ ! -f "${file}" ]]; then
+    return 0
+  fi
+  if is_managed_file "${file}"; then
+    return 0
+  fi
+  if [[ "${FORCE}" == "1" || "${ALLOW_OVERWRITE}" == "1" ]]; then
+    return 0
+  fi
+  echo "ERROR: archivo existente no gestionado detectado: ${file}" >&2
+  echo "El script se detuvo para no sobrescribir tu configuración actual." >&2
+  echo "Si quieres sobrescribir de forma explícita, ejecuta:" >&2
+  echo "  sudo ALLOW_OVERWRITE=1 ./scripts/install_spotify_casero_debian.sh" >&2
+  echo "Sugerencia: respalda primero con: cp -a ${file} ${file}.manual.bak" >&2
+  echo "Referencia (${hint})" >&2
+  exit 2
 }
 
 is_pkg_installed() {
@@ -75,6 +126,12 @@ sha_cfg() {
   printf "%s" "${input}" | sha256sum | awk '{print $1}'
 }
 
+run_user_cmd() {
+  local uid
+  uid="$(id -u "${TARGET_USER}")"
+  runuser -u "${TARGET_USER}" -- env "XDG_RUNTIME_DIR=/run/user/${uid}" "$@"
+}
+
 install_missing_packages() {
   local missing=()
   local packages=(mpd mpc icecast2 ca-certificates curl)
@@ -99,7 +156,7 @@ install_missing_packages() {
 
 install_missing_packages
 
-echo "[2/8] Creando archivo de configuracion en /etc..."
+echo "[2/9] Creando archivo de configuracion en /etc..."
 if [[ ! -f "${CONFIG_FILE}" ]]; then
   cat >"${CONFIG_FILE}" <<EOF
 ICECAST_SOURCE_PASSWORD=${ICECAST_SOURCE_PASSWORD}
@@ -118,13 +175,22 @@ fi
 echo "[2/9] Archivo de configuración listo: ${CONFIG_FILE}"
 
 echo "[3/9] Asegurando carpetas base de MPD..."
-install -d -o mpd -g audio -m 0755 "${MPD_MUSIC_DIR}"
-install -d -o mpd -g audio -m 0755 /var/lib/mpd/playlists
-install -d -o mpd -g audio -m 0755 /var/log/mpd
-install -d -o mpd -g audio -m 0755 /run/mpd
+if [[ "${MPD_SYSTEMD_SCOPE}" == "user" ]]; then
+  install -d -o "${TARGET_USER}" -g "${TARGET_USER}" -m 0755 "${MPD_MUSIC_DIR}"
+  install -d -o "${TARGET_USER}" -g "${TARGET_USER}" -m 0755 "/home/${TARGET_USER}/.config/mpd/playlists"
+else
+  install -d -o mpd -g audio -m 0755 "${MPD_MUSIC_DIR}"
+  install -d -o mpd -g audio -m 0755 /var/lib/mpd/playlists
+  install -d -o mpd -g audio -m 0755 /var/log/mpd
+  install -d -o mpd -g audio -m 0755 /run/mpd
+fi
 mark_step_done "mpd_dirs" "$(sha_cfg "${MPD_MUSIC_DIR}")"
 
+require_safe_overwrite "/etc/icecast2/icecast.xml" "icecast config"
+require_safe_overwrite "${MPD_CONF_PATH}" "mpd config"
+
 ICECAST_CFG_CONTENT="$(cat <<EOF
+${MANAGED_MARKER}
 <icecast>
   <location>Debian</location>
   <admin>admin@localhost</admin>
@@ -201,6 +267,7 @@ fi
 mark_step_done "icecast_enable" "true"
 
 MPD_CFG_CONTENT="$(cat <<EOF
+${MANAGED_MARKER}
 music_directory         "${MPD_MUSIC_DIR}"
 playlist_directory      "/var/lib/mpd/playlists"
 db_file                 "/var/lib/mpd/tag_cache"
@@ -234,11 +301,51 @@ audio_output {
 EOF
 )"
 
+if [[ "${MPD_SYSTEMD_SCOPE}" == "user" ]]; then
+MPD_CFG_CONTENT="$(cat <<EOF
+${MANAGED_MARKER}
+music_directory         "${MPD_MUSIC_DIR}"
+playlist_directory      "/home/${TARGET_USER}/.config/mpd/playlists"
+db_file                 "/home/${TARGET_USER}/.config/mpd/database"
+log_file                "/home/${TARGET_USER}/.config/mpd/log"
+pid_file                "/run/user/$(id -u "${TARGET_USER}")/mpd.pid"
+state_file              "/home/${TARGET_USER}/.config/mpd/state"
+sticker_file            "/home/${TARGET_USER}/.config/mpd/sticker.sql"
+bind_to_address         "127.0.0.1"
+port                    "6600"
+restore_paused          "yes"
+auto_update             "yes"
+auto_update_depth       "3"
+follow_outside_symlinks "yes"
+follow_inside_symlinks  "yes"
+
+audio_output {
+    type            "shout"
+    encoding        "ogg"
+    name            "${MPD_STREAM_NAME}"
+    host            "${ICECAST_HOST}"
+    port            "${ICECAST_PORT}"
+    mount           "${ICECAST_MOUNT}"
+    password        "${ICECAST_SOURCE_PASSWORD}"
+    bitrate         "192"
+    format          "44100:16:2"
+    description     "${MPD_STREAM_DESCRIPTION}"
+    protocol        "icecast2"
+    public          "yes"
+    mixer_type      "software"
+}
+EOF
+)"
+fi
+
 MPD_HASH="$(sha_cfg "${MPD_CFG_CONTENT}")"
 if should_run_step "mpd_cfg" "${MPD_HASH}"; then
-  echo "[6/9] Configurando MPD para emitir a Icecast..."
-  backup_file /etc/mpd.conf
-  printf "%s\n" "${MPD_CFG_CONTENT}" >/etc/mpd.conf
+  echo "[6/9] Configurando MPD (${MPD_SYSTEMD_SCOPE}) para emitir a Icecast..."
+  backup_file "${MPD_CONF_PATH}"
+  printf "%s\n" "${MPD_CFG_CONTENT}" >"${MPD_CONF_PATH}"
+  if [[ "${MPD_SYSTEMD_SCOPE}" == "user" ]]; then
+    chown "${TARGET_USER}:${TARGET_USER}" "${MPD_CONF_PATH}"
+  fi
   mark_step_done "mpd_cfg" "${MPD_HASH}"
 else
   echo "[6/9] Configuración MPD sin cambios. Saltando."
@@ -250,9 +357,25 @@ if should_run_step "systemd_apply" "${SYSTEMD_HASH}"; then
   echo "[7/9] Reiniciando y habilitando servicios systemd..."
   systemctl daemon-reload
   systemctl enable icecast2.service
-  systemctl enable mpd.service
   systemctl restart icecast2.service
-  systemctl restart mpd.service
+  if [[ "${MPD_SYSTEMD_SCOPE}" == "user" ]]; then
+    run_user_cmd systemctl --user daemon-reload || true
+    run_user_cmd systemctl --user enable mpd.service || true
+    if ! run_user_cmd systemctl --user restart mpd.service; then
+      echo "ERROR: mpd.service (user) no pudo iniciar con la configuración aplicada." >&2
+      echo "Revisa: sudo -u ${TARGET_USER} XDG_RUNTIME_DIR=/run/user/\$(id -u ${TARGET_USER}) systemctl --user status mpd.service --no-pager" >&2
+      echo "Revisa: sudo -u ${TARGET_USER} XDG_RUNTIME_DIR=/run/user/\$(id -u ${TARGET_USER}) journalctl --user -xeu mpd.service --no-pager" >&2
+      exit 3
+    fi
+  else
+    systemctl enable mpd.service
+    if ! systemctl restart mpd.service; then
+      echo "ERROR: mpd.service no pudo iniciar con la configuración aplicada." >&2
+      echo "Revisa: systemctl status mpd.service --no-pager" >&2
+      echo "Revisa: journalctl -xeu mpd.service --no-pager" >&2
+      exit 3
+    fi
+  fi
   mark_step_done "systemd_apply" "${SYSTEMD_HASH}"
 else
   echo "[7/9] Servicios systemd ya aplicados para esta configuración. Saltando restart."
@@ -260,8 +383,14 @@ fi
 
 echo "[8/9] Actualizando base de datos de MPD (si hay cambios de música hazlo manual)..."
 if should_run_step "mpd_update" "baseline"; then
-  if ! sudo -u mpd mpc update >/dev/null 2>&1; then
-    echo "Aviso: no se pudo ejecutar 'mpc update' como usuario mpd."
+  if [[ "${MPD_SYSTEMD_SCOPE}" == "user" ]]; then
+    if ! run_user_cmd mpc update >/dev/null 2>&1; then
+      echo "Aviso: no se pudo ejecutar 'mpc update' como usuario ${TARGET_USER}."
+    fi
+  else
+    if ! runuser -u mpd -- mpc update >/dev/null 2>&1; then
+      echo "Aviso: no se pudo ejecutar 'mpc update' como usuario mpd."
+    fi
   fi
   mark_step_done "mpd_update" "baseline"
 else
@@ -270,7 +399,11 @@ fi
 
 echo "[9/9] Estado de servicios y endpoints..."
 systemctl --no-pager --full status icecast2.service | sed -n '1,20p'
-systemctl --no-pager --full status mpd.service | sed -n '1,20p'
+if [[ "${MPD_SYSTEMD_SCOPE}" == "user" ]]; then
+  run_user_cmd systemctl --user --no-pager --full status mpd.service | sed -n '1,20p'
+else
+  systemctl --no-pager --full status mpd.service | sed -n '1,20p'
+fi
 
 echo
 echo "Instalacion finalizada."
@@ -278,6 +411,8 @@ echo "Icecast status page: http://${ICECAST_HOST}:${ICECAST_PORT}/"
 echo "Stream mount:        http://${ICECAST_HOST}:${ICECAST_PORT}${ICECAST_MOUNT}"
 echo "MPD control socket:  ${ICECAST_HOST}:6600"
 echo "Config file:         ${CONFIG_FILE}"
+echo "MPD conf:            ${MPD_CONF_PATH}"
+echo "MPD scope:           ${MPD_SYSTEMD_SCOPE}"
 echo "State cache:         ${STATE_FILE}"
 echo
 echo "Siguiente paso sugerido:"
