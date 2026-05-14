@@ -22,5 +22,5 @@ Este modulo se ejecuta normalmente desde el root del repo via
 ```bash
 ./mvnw test
 ./mvnw package
-PORT=9090 ./mvnw exec:java
+PORT=9090 ./mvnw -DskipTests compile exec:java
 ```

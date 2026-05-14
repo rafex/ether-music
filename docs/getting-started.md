@@ -25,7 +25,7 @@ Si quieres operar el modulo Java sin pasar por `make` o `just`:
 cd backend/java/ether-music
 ./mvnw test
 ./mvnw package
-PORT=9090 ./mvnw exec:java
+PORT=9090 ./mvnw -DskipTests compile exec:java
 ./mvnw -Pnative native:compile
 ```
 
@@ -45,7 +45,7 @@ export DEEPSEEK_API_KEY="sk-xxxxxxxxxxxxxxxx"
 ```bash
 just run
 # o
-PORT=8080 ./mvnw exec:java
+PORT=8080 ./mvnw -DskipTests compile exec:java
 ```
 
 Una vez configurada, podrás usar:

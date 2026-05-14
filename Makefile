@@ -17,7 +17,7 @@ clean:
 	cd $(MODULE_DIR) && $(MVNW) clean
 
 run:
-	cd $(MODULE_DIR) && $(MVNW) exec:java
+	cd $(MODULE_DIR) && $(MVNW) -q -DskipTests compile exec:java
 
 helm-lint:
 	helm lint helm/ether-music

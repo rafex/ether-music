@@ -22,4 +22,4 @@ native:
   make native
 
 run port="8080":
-  cd backend/java/ether-music && PORT={{port}} ./mvnw exec:java
+  cd backend/java/ether-music && PORT={{port}} ./mvnw -q -DskipTests compile exec:java
