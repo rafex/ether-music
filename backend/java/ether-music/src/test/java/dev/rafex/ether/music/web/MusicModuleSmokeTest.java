@@ -74,6 +74,15 @@ class MusicModuleSmokeTest {
     }
 
     @Test
+    void radioPageDevuelve200() throws Exception {
+        final var res = client.send(
+                HttpRequest.newBuilder(URI.create(baseUrl + "/radio")).GET().build(),
+                HttpResponse.BodyHandlers.ofString());
+        assertEquals(200, res.statusCode());
+        assertTrue(res.body().contains("Spotify casero"));
+    }
+
+    @Test
     void electronicPageDevuelve200() throws Exception {
         final var res = client.send(
                 HttpRequest.newBuilder(URI.create(baseUrl + "/electronic")).GET().build(),
@@ -98,6 +107,15 @@ class MusicModuleSmokeTest {
                 HttpResponse.BodyHandlers.ofString());
         assertEquals(200, res.statusCode());
         assertTrue(res.body().contains("\"status\":\"ok\""));
+    }
+
+    @Test
+    void radioStatusDevuelve200AunSinMpd() throws Exception {
+        final var res = client.send(
+                HttpRequest.newBuilder(URI.create(baseUrl + "/api/radio/status")).GET().build(),
+                HttpResponse.BodyHandlers.ofString());
+        assertEquals(200, res.statusCode());
+        assertTrue(res.body().contains("radio-status"));
     }
 
     @Test
