@@ -1,5 +1,6 @@
 MODULE_DIR := backend/java/ether-music
 MVNW := ./mvnw
+PORT ?= 8080
 
 .PHONY: build test verify clean run helm-lint native
 
@@ -17,7 +18,7 @@ clean:
 	cd $(MODULE_DIR) && $(MVNW) clean
 
 run:
-	cd $(MODULE_DIR) && $(MVNW) -q -DskipTests compile exec:java
+	cd $(MODULE_DIR) && PORT=$(PORT) $(MVNW) -q -DskipTests compile exec:java
 
 helm-lint:
 	helm lint helm/ether-music
