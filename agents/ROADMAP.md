@@ -21,4 +21,4 @@
 ### No hacer por ahora
 
 - Autenticacion de usuarios.
-- Streaming en tiempo real o colaboracion multiusuario.
+- Colaboracion multiusuario sincronizada (salas compartidas tipo jam).

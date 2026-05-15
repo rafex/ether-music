@@ -91,3 +91,20 @@
   sencillo de operar; a cambio, no se debe habilitar escalado horizontal
   mientras la persistencia siga basada en SQLite.
 - Reemplaza: `none`
+
+### DEC-0007 - Arquitectura hibrida de audio: `live` global + `on-demand` por cliente
+
+- Fecha: 2026-05-14
+- Estado: `accepted`
+- Relacionado con specs: `SPEC-0002`
+- Relacionado con tareas: `TASK-0101`
+- Contexto: el flujo `MPD -> Icecast` resuelve radio global, pero no
+  sesiones independientes por navegador.
+- Decision: mantener `MPD + Icecast` para `/live` y agregar un segundo
+  modo `on-demand` servido por el backend Java via `HTTP Range` en
+  `/api/stream/{id}` con catalogo en `/api/library/songs` y UI en
+  `/player`.
+- Consecuencias: se preserva la operacion estable de radio y se habilita
+  experiencia tipo "cada usuario elige su pista"; a cambio, el backend
+  asume responsabilidad de catalogo y streaming parcial.
+- Reemplaza: `none`

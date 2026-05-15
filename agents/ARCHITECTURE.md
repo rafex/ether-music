@@ -7,6 +7,10 @@ Ether monta el servidor HTTP y registra rutas. El backend contiene la
 logica de generacion melodica y expone respuestas JSON. La pagina
 principal se renderiza con `jte` y delega en JavaScript la visualizacion
 y reproduccion del audio con Web Audio API.
+Para audio operativo conviven dos modos:
+- `live`: MPD + Icecast como radio global compartida.
+- `on-demand`: streaming HTTP con `Range` servido por el backend para
+  reproduccion individual por cliente.
 El codigo del modulo vive en `backend/java/ether-music/` para no mezclar
 la raiz del repositorio con archivos del runtime.
 La aplicacion persiste las composiciones generadas en SQLite local para
@@ -28,6 +32,9 @@ despliega en k3s mediante una release Helm unica.
   persistencia SQLite de composiciones y consulta del historial.
 - `helm/ether-music`:
   manifiestos Kubernetes parametrizados para despliegue en k3s.
+- `ondemand`:
+  catalogo de archivos de audio locales y resolucion segura de ids para
+  streaming parcial.
 
 ## Flujo principal
 
@@ -39,6 +46,16 @@ despliega en k3s mediante una release Helm unica.
 4. El generador produce la secuencia, paleta y metadatos musicales.
 5. La composicion se guarda en SQLite.
 6. El cliente recibe JSON y puede reproducir o listar canciones.
+
+## Flujo de audio hibrido
+
+1. Modo `live`:
+   MPD reproduce una cola global y publica en Icecast; `/radio` controla
+   estado/comandos via `/api/radio/*`.
+2. Modo `on-demand`:
+   `/api/library/songs` lista archivos del directorio musical local y el
+   navegador consume `/api/stream/{id}` con `Range` para play/pause/seek
+   independiente por usuario.
 
 ## Restricciones
 
