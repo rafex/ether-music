@@ -601,6 +601,14 @@
 
     function log(msg) { logNode.textContent = msg; }
 
+    function parseJsonSafely(raw) {
+        try {
+            return JSON.parse(raw);
+        } catch (e) {
+            return null;
+        }
+    }
+
     function initAudio() {
         if (audioCtx) return;
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -761,12 +769,19 @@
             body: content
         })
         .then(function(res) {
-            if (!res.ok) {
-                return res.json().then(function(err) {
-                    throw new Error(err.error || ("HTTP " + res.status));
-                });
-            }
-            return res.json();
+            return res.text().then(function(raw) {
+                const parsed = parseJsonSafely(raw);
+                if (!res.ok) {
+                    const errorMsg = parsed && (parsed.error || parsed.message)
+                        ? (parsed.error || parsed.message)
+                        : ("HTTP " + res.status + " " + (raw ? raw.slice(0, 180) : ""));
+                    throw new Error(errorMsg.trim());
+                }
+                if (!parsed) {
+                    throw new Error("Respuesta inválida del servidor (no JSON).");
+                }
+                return parsed;
+            });
         })
         .then(function(data) {
             applyMelody(data);

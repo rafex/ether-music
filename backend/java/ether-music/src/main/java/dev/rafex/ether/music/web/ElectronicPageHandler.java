@@ -21,7 +21,7 @@ public final class ElectronicPageHandler extends Handler.Abstract {
         if (!"GET".equalsIgnoreCase(request.getMethod())) {
             return false;
         }
-        final var model = new HomePageModel("Ether Music - Electrónica", "");
+        final var model = new HomePageModel("Ether Music - Electrónica", "/api/electronic");
         ResponseWriters.html(response, callback, 200, renderer.renderElectronic(model));
         return true;
     }
