@@ -83,6 +83,15 @@ class MusicModuleSmokeTest {
     }
 
     @Test
+    void playerPageDevuelve200() throws Exception {
+        final var res = client.send(
+                HttpRequest.newBuilder(URI.create(baseUrl + "/player")).GET().build(),
+                HttpResponse.BodyHandlers.ofString());
+        assertEquals(200, res.statusCode());
+        assertTrue(res.body().contains("Player individual"));
+    }
+
+    @Test
     void electronicPageDevuelve200() throws Exception {
         final var res = client.send(
                 HttpRequest.newBuilder(URI.create(baseUrl + "/electronic")).GET().build(),
@@ -116,6 +125,15 @@ class MusicModuleSmokeTest {
                 HttpResponse.BodyHandlers.ofString());
         assertEquals(200, res.statusCode());
         assertTrue(res.body().contains("radio-status"));
+    }
+
+    @Test
+    void librarySongsDevuelve200AunSinArchivos() throws Exception {
+        final var res = client.send(
+                HttpRequest.newBuilder(URI.create(baseUrl + "/api/library/songs")).GET().build(),
+                HttpResponse.BodyHandlers.ofString());
+        assertEquals(200, res.statusCode());
+        assertTrue(res.body().startsWith("["));
     }
 
     @Test

@@ -243,6 +243,13 @@
                 <p class="cta-description">Controla MPD y escucha el stream de Icecast desde una sola interfaz HTMX.</p>
                 <span class="cta-arrow">→ Ir</span>
             </a>
+
+            <a href="/player" class="cta-card">
+                <div class="cta-icon">🎧</div>
+                <h2 class="cta-title">Player</h2>
+                <p class="cta-description">Modo individual: cada navegador elige su canción y reproduce por streaming HTTP.</p>
+                <span class="cta-arrow">→ Ir</span>
+            </a>
         </div>
 
         <footer>
