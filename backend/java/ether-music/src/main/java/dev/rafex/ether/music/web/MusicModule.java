@@ -7,6 +7,7 @@ import dev.rafex.ether.music.ai.ElectronicCompositionService;
 import dev.rafex.ether.music.db.SongRepository;
 import dev.rafex.ether.music.frontend.FrontendRenderer;
 import dev.rafex.ether.music.melody.MelodyGenerator;
+import dev.rafex.ether.music.ondemand.MusicLibraryService;
 import dev.rafex.ether.music.radio.RadioService;
 
 public final class MusicModule implements JettyModule {
@@ -16,29 +17,32 @@ public final class MusicModule implements JettyModule {
     private final SongRepository repository;
     private final ElectronicCompositionService electronicService;
     private final RadioService radioService;
+    private final MusicLibraryService libraryService;
 
     public MusicModule(final FrontendRenderer renderer, final MelodyGenerator melodyGenerator) {
-        this(renderer, melodyGenerator, null, null, RadioService.fromEnv());
+        this(renderer, melodyGenerator, null, null, RadioService.fromEnv(), MusicLibraryService.fromEnv());
     }
 
     public MusicModule(final FrontendRenderer renderer, final MelodyGenerator melodyGenerator,
             final SongRepository repository) {
-        this(renderer, melodyGenerator, repository, null, RadioService.fromEnv());
+        this(renderer, melodyGenerator, repository, null, RadioService.fromEnv(), MusicLibraryService.fromEnv());
     }
 
     public MusicModule(final FrontendRenderer renderer, final MelodyGenerator melodyGenerator,
             final SongRepository repository, final ElectronicCompositionService electronicService) {
-        this(renderer, melodyGenerator, repository, electronicService, RadioService.fromEnv());
+        this(renderer, melodyGenerator, repository, electronicService, RadioService.fromEnv(),
+                MusicLibraryService.fromEnv());
     }
 
     public MusicModule(final FrontendRenderer renderer, final MelodyGenerator melodyGenerator,
             final SongRepository repository, final ElectronicCompositionService electronicService,
-            final RadioService radioService) {
+            final RadioService radioService, final MusicLibraryService libraryService) {
         this.renderer = renderer;
         this.melodyGenerator = melodyGenerator;
         this.repository = repository;
         this.electronicService = electronicService;
         this.radioService = radioService;
+        this.libraryService = libraryService;
     }
 
     @Override
@@ -52,6 +56,7 @@ public final class MusicModule implements JettyModule {
         routes.add("/create", new CreatePageHandler(renderer));
         routes.add("/play", new PlayPageHandler(renderer));
         routes.add("/radio", new RadioPageHandler(renderer, radioService));
+        routes.add("/player", new PlayerPageHandler(renderer, libraryService));
         routes.add("/electronic", new ElectronicPageHandler(renderer));
         routes.add("/agent", new AgentPageHandler(renderer));
         routes.add("/conversation", new ConversationPageHandler(renderer));
@@ -67,6 +72,8 @@ public final class MusicModule implements JettyModule {
         routes.add("/api/compose/color", new ColorCompositionHandler(melodyGenerator, repository));
         routes.add("/api/compose/graphic", new GraphicCompositionHandler(repository));
         routes.add("/api/radio/*", new RadioApiHandler(radioService));
+        routes.add("/api/library/*", new LibraryApiHandler(context.jsonCodec(), libraryService));
+        routes.add("/api/stream/*", new OnDemandStreamHandler(libraryService));
 
         if (repository != null) {
             final var songsHandler = new SongsApiHandler(context.jsonCodec(), repository);
