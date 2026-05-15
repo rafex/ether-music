@@ -610,7 +610,7 @@
 </main>
 
 <script>
-const apiEndpoint = "${model.apiEndpoint()}";
+const apiEndpoint = ("${model.apiEndpoint()}" || "/api/melodies/generate").trim();
 const rootSelect = document.getElementById("root");
 const scaleSelect = document.getElementById("scale");
 const octaveInput = document.getElementById("octave");

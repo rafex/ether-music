@@ -21,7 +21,7 @@ public final class CreatePageHandler extends Handler.Abstract {
         if (!"GET".equalsIgnoreCase(request.getMethod())) {
             return false;
         }
-        final var model = new HomePageModel("Ether Music - Crear", "");
+        final var model = new HomePageModel("Ether Music - Crear", "/api/melodies/generate");
         ResponseWriters.html(response, callback, 200, renderer.renderCreate(model));
         return true;
     }
