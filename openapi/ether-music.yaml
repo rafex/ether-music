@@ -14,6 +14,8 @@ tags:
     description: Endpoints que generan musica
   - name: songs
     description: Consulta de canciones guardadas
+  - name: ondemand
+    description: Catalogo y streaming individual de audio
 paths:
   /api/melodies/generate:
     get:
@@ -218,6 +220,83 @@ paths:
             text/plain:
               schema:
                 type: string
+  /api/library/songs:
+    get:
+      tags: [ondemand]
+      summary: Lista tracks del catalogo on-demand
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5000
+            default: 1000
+      responses:
+        '200':
+          description: Tracks detectados en el directorio de musica
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OnDemandTrack'
+  /api/stream/{id}:
+    get:
+      tags: [ondemand]
+      summary: Stream de audio on-demand con soporte HTTP Range
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: header
+          name: Range
+          required: false
+          schema:
+            type: string
+            example: bytes=0-4095
+      responses:
+        '200':
+          description: Archivo completo
+          headers:
+            Accept-Ranges:
+              schema:
+                type: string
+                example: bytes
+          content:
+            audio/mpeg: {}
+            audio/ogg: {}
+            audio/flac: {}
+            audio/wav: {}
+        '206':
+          description: Rango parcial
+          headers:
+            Accept-Ranges:
+              schema:
+                type: string
+                example: bytes
+            Content-Range:
+              schema:
+                type: string
+                example: bytes 0-4095/10485760
+          content:
+            audio/mpeg: {}
+            audio/ogg: {}
+            audio/flac: {}
+            audio/wav: {}
+        '404':
+          description: Track no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        '416':
+          description: Rango invalido
 components:
   schemas:
     ExpressRequest:
@@ -327,6 +406,32 @@ components:
             - 'null'
           format: double
           example: 349.2282314330039
+    OnDemandTrack:
+      type: object
+      required: [id, title, artist, album, extension, mimeType, sizeBytes]
+      properties:
+        id:
+          type: string
+          example: Qm9ubmllIFR5bGVyL1RvdGFsIEVjbGlwc2UgT2YgVGhlIEhlYXJ0Lm1wMw
+        title:
+          type: string
+          example: Total Eclipse Of The Heart
+        artist:
+          type: string
+          example: Bonnie Tyler
+        album:
+          type: string
+          example: Greatest Hits
+        extension:
+          type: string
+          example: mp3
+        mimeType:
+          type: string
+          example: audio/mpeg
+        sizeBytes:
+          type: integer
+          format: int64
+          example: 5321345
     ComposedResponse:
       type: object
       required: [source, bpm, request, scaleLabel, algorithm, palette, melody]

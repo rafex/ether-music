@@ -21,6 +21,7 @@ La aplicacion expone rutas web de composicion y radio:
 - `/create` - Interfaz de composicion con cuatro modos (Clasico, Express, Palabras, Codigo)
 - `/play` - Biblioteca de canciones guardadas, reproduccion y filtrado
 - `/radio` - Control de MPD + reproduccion Icecast con HTMX
+- `/player` - Reproductor on-demand por usuario con streaming HTTP Range
 
 La API REST:
 
@@ -33,6 +34,8 @@ La API REST:
 - `GET /api/radio/status` - estado renderizado del reproductor MPD
 - `GET /api/radio/playlist` - playlist renderizada para HTMX
 - `POST /api/radio/control` - control de play/pause/next/prev/volume
+- `GET /api/library/songs` - catalogo de archivos de audio para modo individual
+- `GET /api/stream/{id}` - stream on-demand con soporte de `Range`
 
 PWA:
 - Manifest, Service Worker y iconos instalables

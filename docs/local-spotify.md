@@ -177,6 +177,25 @@ Luego abre:
 
 `http://127.0.0.1:8080/radio`
 
+## 6.1 Modo híbrido: radio + player individual
+
+- `/radio`: todos oyen el mismo stream global (`MPD -> Icecast`).
+- `/player`: cada cliente elige su canción independiente (`HTTP Range`).
+
+Para el modo individual, define el directorio de biblioteca que
+escaneará la app Java:
+
+```bash
+export MUSIC_LIBRARY_DIR=/home/rafex/Music
+just run
+```
+
+Validación rápida:
+
+```bash
+curl -s http://127.0.0.1:8080/api/library/songs | head -c 300 && echo
+```
+
 ## 7. Troubleshooting
 
 Si no suena audio:

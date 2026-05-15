@@ -212,6 +212,36 @@ Ejemplo:
 curl "http://127.0.0.1:8080/api/songs-wav/1" -o cancion.wav
 ```
 
+### `GET /api/library/songs`
+
+Lista archivos de audio disponibles para el modo on-demand.
+
+Query params opcionales:
+- `limit`: máximo de registros (`1..5000`, default `1000`)
+
+Ejemplo:
+
+```bash
+curl "http://127.0.0.1:8080/api/library/songs?limit=100"
+```
+
+### `GET /api/stream/{id}`
+
+Entrega un archivo de audio por streaming HTTP y soporta `Range` para
+seek y buffering del navegador.
+
+Ejemplo (primeros 4KB):
+
+```bash
+curl -i -H "Range: bytes=0-4095" \
+  "http://127.0.0.1:8080/api/stream/<track_id>"
+```
+
+Respuesta esperada cuando hay `Range`:
+- `206 Partial Content`
+- `Accept-Ranges: bytes`
+- `Content-Range: bytes start-end/total`
+
 ### `POST /api/electronic/{type}`
 
 Analiza contenido con DeepSeek y genera una composicion electronica.
